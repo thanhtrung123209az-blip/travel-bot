@@ -1,20 +1,11 @@
 {
-  "name": "travel-bot",
+  "name": "chatbot-du-lich-63-tinh-thanh",
   "version": "1.0.0",
-  "description": "Bot Hướng dẫn viên du lịch 63 tỉnh thành Việt Nam",
+  "description": "Webhook Dialogflow ES Hướng dẫn viên Du lịch 63 Tỉnh Thành Việt Nam",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
-  "keywords": [
-    "chatbot",
-    "travel",
-    "express",
-    "vietnam",
-    "dialogflow"
-  ],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "express": "^4.19.2"
   },
