@@ -2,325 +2,754 @@ const express = require('express');
 const app = express();
 app.use(express.json());
 
-// 🎙️ KHO DỮ LIỆU TƯ VẤN DU LỊCH 63 TỈNH THÀNH (PHONG CÁCH HƯỚNG DẪN VIÊN)
+// 📸 Link ảnh mặc định chuẩn thiên nhiên Việt Nam
+const ANH_MAC_DINH = 'https://images.unsplash.com/photo-1528127269322-539801943592?w=800';
+
+// 🎙️ KHO DỮ LIỆU ĐẦY ĐỦ 63 TỈNH THÀNH VIỆT NAM (CHUẨN RICH CARD)
 const duLieuCacTinh = {
-  // ==================== I. MIỀN BẮC ====================
-  'lào cai': `🎩 **Dạ em chào quý khách! Chào mừng quý khách đến với Lào Cai - Sa Pa vùng đất sương giăng!**
-
-🏔️ **Điểm check-in đỉnh cao**:
-• Đỉnh Fansipan - Nóc nhà Đông Dương (đi cáp treo ngắm mây ngàn).
-• Bản Cát Cát, Thung lũng Mường Hoa - Trải nghiệm văn hóa H'Mông.
-• Cầu kính Rồng Mây - Thử thách lòng cảm giác mạnh.
-
-🍲 **Món ngon chuẩn vị Tây Bắc**:
-• Lẩu cá hồi, cá tầm tươi sống nhúng rau mầm đá.
-• Thịt trâu gác bếp, thắng cố đêm Phố Cổ.
-
-☀️ **Mùa vàng du lịch**:
-• Tháng 9 - 10: Ngắm mùa lúa chín vàng rực trên ruộng bậc thang.
-• Tháng 12 - 1: Săn mây, ngắm băng tuyết và tận hưởng cái lạnh đậm chất Âu.
-
-💡 **Bí kíp HDV bật mí**: Hãy thuê một bộ trang phục dân tộc tại Bản Cát Cát để có bộ ảnh kỷ niệm cực xinh nhé!`,
-
-  'sapa': `🎩 **Dạ em chào quý khách! Sa Pa mờ sương xin chào đón quý khách!**
-
-🏔️ **Trải nghiệm không thể bỏ lỡ**:
-• Chinh phục đỉnh Fansipan 3.143m ngắm biển mây bồng bềnh.
-• Dạo bước tại Bản Cát Cát, Check-in Moana Sa Pa, Cổng Trời.
-
-🍲 **Ẩm thực sưởi ấm lòng người**:
-• Lẩu cá hồi cá tầm, đồ nướng phố cổ đêm sương lạnh.
-
-☀️ **Thời điểm lý tưởng**: Tháng 9-10 (Lúa chín) & Tháng 12-1 (Săn mây, tuyết).
-💡 **Lời khuyên HDV**: Chuẩn bị áo ấm dày và giày thể thao êm chân vì sẽ đi bộ khá nhiều ạ!`,
-
-  'hà giang': `🎩 **Dạ em chào quý khách! Hà Giang - Mảnh đất địa đầu Tổ quốc hùng vĩ xin chào!**
-
-🏍️ **Cung đường huyền thoại**:
-• Chinh phục Đèo Mã Pí Lèng - một trong "Tứ đại đỉnh đèo".
-• Đi thuyền trên Sông Nho Quế màu xanh ngọc bích qua hẻm Tu Sản.
-• Cột cờ Lũng Cú, Dinh thự nhà Vương, Phố cổ Đồng Văn.
-
-🍲 **Đặc sản đậm đà miền đá**:
-• Bánh tam giác mạch, cháo ấu tẩu sưởi ấm đêm lạnh, phở tráng đồng.
-
-☀️ **Mùa đẹp nhất**: Tháng 10 - 12 (Đúng mùa hoa tam giác mạch nở rộ).
-💡 **Mẹo từ HDV**: Đường đèo nhiều khúc cua tay áo, nếu tự lái xe máy quý khách nhớ giữ vững tay lái và kiểm tra phanh kỹ nhé!`,
-
-  'cao bằng': `🎩 **Dạ em chào quý khách! Cao Bằng - Vùng đất non nước hữu tình xin chào!**
-
-🌊 **Cảnh quan tuyệt mỹ**:
-• Thác Bản Giốc - Thác nước tự nhiên lớn nhất Đông Nam Á.
-• Động Ngườm Ngao kỳ ảo, Suối Lê Nin - Khu di tích Pác Bó xanh trong như ngọc.
-
-🍲 **Món ngon nhớ mãi**:
-• Bánh cuốn Cao Bằng nước xương ngọt thanh, hạt dẻ Trùng Khánh bùi ngậy, vịt quay 7 vị.
-
-☀️ **Thời điểm vàng**: Tháng 8 - Tháng 10 (Nước thác xanh ngắt, trong lành).
-💡 **Gợi ý HDV**: Đừng quên mua hạt dẻ Trùng Khánh về làm quà cho người thân nhé!`,
-
-  'hà nội': `🎩 **Dạ em chào quý khách! Hà Nội 36 phố phường nghìn năm văn hiến xin chào!**
-
-🏛️ **Hành trình khám phá thủ đô**:
-• Dạo Hồ Hoàn Kiếm, viếng Lăng Bác, thăm Văn Miếu Quốc Tử Giám.
-• Khám phá nét cổ kính của Phố Cổ Hà Nội và Cầu Long Biên lịch sử.
-
-🍲 **Tinh hoa ẩm thực Tràng An**:
-• Phở gia truyền, Bún chả Hàng Mành, Chả cá Lăng, Cà phê trứng Giảng.
-
-☀️ **Mùa đẹp nhất**: Tháng 9 - Tháng 11 (Thu Hà Nội hoa sữa rơi, không khí se lạnh siêu lãng mạn).
-💡 **Mẹo HDV**: Hãy thử dậy sớm lúc 5h sáng dạo quanh Hồ Gươm để cảm nhận một Hà Nội bình yên nhất!`,
-
-  'quảng ninh': `🎩 **Dạ em chào quý khách! Quảng Ninh - Kỳ quan thiên nhiên thế giới xin chào!**
-
-⛵ **Trải nghiệm đẳng cấp**:
-• Du thuyền tham quan Vịnh Hạ Long, Đảo Ti Tốp, Động Thiên Cung.
-• Hành hương về đất Phật Yên Tử, vui chơi tại Sun World Hạ Long.
-
-🍲 **Đặc sản hải sản**:
-• Chả mực Hạ Long giòn sần sật, bún bề bề, sá sùng rang.
-
-☀️ **Thời điểm đẹp**: Tháng 4 - Tháng 9 (Nắng đẹp, biển xanh thích hợp tắm biển và đi du thuyền).
-💡 **Bí kíp HDV**: Nên đặt tour du thuyền ngủ đêm trên Vịnh Hạ Long để đón bình minh siêu đẹp!`,
-
-  'hạ long': `🎩 **Dạ em chào quý khách! Vịnh Hạ Long kỳ quan xin chào đón quý khách!**
-
-⛵ **Điểm tham quan nổi bật**:
-• Vịnh Hạ Long, Bảo tàng Quảng Ninh, Đảo Ti Tốp, Phố cổ Bãi Cháy.
-🍲 **Thức quà của biển**: Chả mực Hạ Long ăn kèm xôi trắng hoặc bánh cuốn, bún bề bề.
-☀️ **Mùa đẹp**: Tháng 4 - Tháng 8.
-💡 **Mẹo HDV**: Đừng quên mang theo đồ bơi và kem chống nắng đầy đủ nhé!`,
-
-  'ninh bình': `🎩 **Dạ em chào quý khách! Ninh Bình - Tuyệt tác di sản Cố đô xin chào!**
-
-🚣 **Cảnh tiên nơi hạ giới**:
-• Đi thuyền Tràng An / Tam Cốc lướt qua những dãy núi đá vôi.
-• Chinh phục Hang Múa ngắm toàn cảnh dòng sông Ngô Đồng.
-• Chiêm bái Chùa Bái Đính - Ngôi chùa sở hữu nhiều kỷ lục.
-
-🍲 **Đặc sản cố đô**:
-• Cơm cháy giòn tan chấm sốt dê, Thịt dê núi tái chanh thơm nức.
-
-☀️ **Mùa vàng**: Tháng 1 - Tháng 5 (Đi lễ xuân & Mùa lúa vàng Tam Cốc rực rỡ vào tháng 5-6).
-💡 **Mẹo HDV**: Leo Hang Múa khoảng 500 bậc thang, quý khách nhớ mang giày thể thao nhẹ nhé!`,
-
-  // ==================== II. MIỀN TRUNG & TÂY NGUYÊN ====================
-  'thừa thiên huế': `🎩 **Dạ em chào quý khách! Cố đô Huế mộng mơ kính chào quý khách!**
-
-👑 **Dấu ấn kinh kỳ**:
-• Thăm Đại Nội Huế, Lăng Khải Định, Lăng Tự Đức, Chùa Thiên Mụ.
-• Đi thuyền rồng ngắm hoàng hôn và nghe Ca Huế trên Sông Hương.
-
-🍲 **Culinary Huế - Đậm đà xứ Huế**:
-• Bún bò Huế chuẩn vị, Cơm hến, Bánh bèo - nậm - lọc, Chè hẻm.
-
-☀️ **Thời điểm đẹp**: Tháng 1 - Tháng 4 (Thời tiết mát mẻ, dễ chịu).
-💡 **Bí kíp HDV**: Thuê một chiếc áo dài truyền thống chụp ảnh tại Đại Nội sẽ cho ra những bức hình tuyệt đẹp!`,
-
-  'huế': `🎩 **Dạ em chào quý khách! Xứ Huế mộng mơ kính chào quý khách!**
-
-👑 **Điểm đến cố đô**: Đại Nội Huế, Chùa Thiên Mụ, Lăng Khải Định, Đồi Vọng Cảnh.
-🍲 **Ẩm thực đặc sắc**: Bún bò Huế, Cơm hến, Bánh bèo nậm lọc, Chè mâm.
-☀️ **Thời điểm lý tưởng**: Tháng 1 - Tháng 4.
-💡 **Lời khuyên HDV**: Hãy thưởng thức một tách trà cung đình Huế vào buổi tối nhé!`,
-
-  'đà nẵng': `🎩 **Dạ em chào quý khách! Đà Nẵng - Thành phố đáng sống nhất Việt Nam xin chào!**
-
-🌉 **Điểm hẹn hiện đại & thiên nhiên**:
-• Sun World Bà Nà Hills (Check-in Cầu Vàng nổi tiếng thế giới).
-• Xem Cầu Rồng phun lửa & nước vào 21h cuối tuần.
-• Tắm biển Mỹ Khê, thăm Bán đảo Sơn Trà và Chùa Linh Ứng.
-
-🍲 **Đặc sản thành phố biển**:
-• Mì Quảng, Bánh tráng thịt heo 2 đầu da, Bún chả cá.
-
-☀️ **Thời điểm lý tưởng**: Tháng 2 - Tháng 8 (Trời trong xanh, ít mưa).
-💡 **Mẹo HDV**: Nên lên Bà Nà Hills từ sớm để tránh đông đúc và săn được mây đẹp tại Cầu Vàng!`,
-
-  'hội an': `🎩 **Dạ em chào quý khách! Phố cổ Hội An hoài niệm kính chào quý khách!**
-
-🏮 **Không gian hoài cổ**:
-• Dạo bước Phố cổ Hội An rợp bóng đèn lồng, check-in Chùa Cầu.
-• Đi thuyền trên sông Hoài thả đèn hoa đăng cầu may mắn.
-• Khám phá Rừng dừa Bảy Mẫu múa thúng thú vị.
-
-🍲 **Ẩm thực phố hội**:
-• Cao lầu, Cơm gà Hội An, Bánh mì Phượng / Madam Khánh, Bánh đập hến xào.
-
-☀️ **Mùa đẹp**: Tháng 2 - Tháng 7.
-💡 **Mẹo HDV**: Hãy ghé Hội An từ 17h chiều để ngắm trọn vẹn khoảnh khắc phố lên đèn cực kỳ lung linh!`,
-
-  'quảng nam': `🎩 **Dạ em chào quý khách! Quảng Nam - Nơi hội tụ di sản xin chào!**
-
-🏮 **Điểm đến di sản**: Phố cổ Hội An, Thánh địa Mỹ Sơn, Cù Lao Chàm, Rừng dừa Bảy Mẫu.
-🍲 **Đặc sản trứ danh**: Cao lầu, Mì Quảng Phú Chiêm, Cơm gà Hội An.
-☀️ **Thời điểm đẹp**: Tháng 2 - Tháng 7.
-💡 **Mẹo HDV**: Kết hợp đi Cù Lao Chàm lặn ngắm san hô vào buổi sáng rất tuyệt ạ!`,
-
-  'khánh hòa': `🎩 **Dạ em chào quý khách! Nha Trang - Thiên đường biển xanh Khánh Hòa xin chào!**
-
-🏝️ **Trải nghiệm biển đảo tuyệt vời**:
-• Oanh tạc thiên đường giải trí VinWonders Nha Trang.
-• Tour 4 đảo (Hòn Mun, Hòn Tằm) lặn ngắm san hô, tắm bùn khoáng.
-• Tháp Bà Ponagar cổ kính đậm nét văn hóa Chăm Pa.
-
-🍲 **Đặc sản xứ trầm hương**:
-• Nem nướng Nha Trang, Bún chả cá/bún sứa, Hải sản Chợ Đêm.
-
-☀️ **Thời điểm đẹp**: Tháng 1 - Tháng 8 (Nắng vàng, biển êm).
-💡 **Mẹo HDV**: Hãy thử trải nghiệm dịch vụ tắm bùn khoáng nóng để thư giãn cơ thể nhé!`,
-
-  'nha trang': `🎩 **Dạ em chào quý khách! Nha Trang biển xanh nắng vàng xin chào!**
-
-🏝️ **Điểm check-in nổi bật**: VinWonders, Đảo Hòn Mun, Tháp Bà Ponagar, Biển Dốc Lết.
-🍲 **Ẩm thực biển**: Nem nướng Đặng Văn Quyên, Bún sứa, Bò Lạc Cảnh.
-☀️ **Thời điểm đẹp**: Tháng 1 - Tháng 8.
-💡 **Mẹo HDV**: Tối dạo đường Trần Phú ngắm biển và gió mát cực kỳ chill!`,
-
-  'lâm đồng': `🎩 **Dạ em chào quý khách! Đà Lạt - Thành phố ngàn hoa xứ Lâm Đồng xin chào!**
-
-🌸 **Thành phố mộng mơ**:
-• Hồ Tuyền Lâm, Thung lũng Tình Yêu, Chợ đêm Đà Lạt, Đồi cỏ hồng.
-• Săn mây tại Cầu Đất, check-in các quán cà phê ngắm thung lũng.
-
-🍲 **Ẩm thực sưởi ấm phố núi**:
-• Lẩu gà lá é, Bánh mì xíu mại nóng hổi, Bánh căn, Kem bơ Thanh Thảo.
-
-☀️ **Mùa đẹp nhất**: Tháng 11 - Tháng 4 (Mùa hoa dã quỳ, mai anh đào & săn mây).
-💡 **Bí kíp HDV**: Buổi tối nhiệt độ xuống thấp, nhớ mang áo len, khăn quàng cổ để dạo chợ đêm nhé!`,
-
-  'đà lạt': `🎩 **Dạ em chào quý khách! Đà Lạt phố sương mờ kính chào quý khách!**
-
-🌸 **Điểm đến lãng mạn**: Hồ Xuân Hương, Quảng trường Lâm Viên, Đồi chè Cầu Đất, Langbiang.
-🍲 **Món ấm lòng**: Lẩu bò Ba Toa, Lẩu gà lá é Tao Ngộ, Bánh căn góc cây bơ.
-☀️ **Thời điểm đẹp**: Tháng 11 - Tháng 4.
-💡 **Mẹo HDV**: Dậy sớm từ 4h30 sáng đi săn mây Đồi Cầu Đất sẽ có ảnh siêu phẩm!`,
-
-  // ==================== III. MIỀN NAM ====================
-  'tp.hồ chí minh': `🎩 **Dạ em chào quý khách! Thành phố Hồ Chí Minh (Sài Gòn) năng động xin chào!**
-
-🏙️ **Nhịp sống phồn hoa**:
-• Dinh Độc Lập, Bưu điện Trung tâm, Nhà thờ Đức Bà, Chợ Bến Thành.
-• Ngắm toàn cảnh thành phố từ tòa nhà Landmark 81 hoặc ngắm sông trên Bus đường sông.
-• Khám phá không gian lịch sử tại Địa đạo Củ Chi.
-
-🍲 **Thiên đường ăn uống không ngủ**:
-• Cơm tấm Sài Gòn, Hủ tiếu Nam Vang, Bánh mì Sài Gòn, ốc đêm đường Vĩnh Khánh.
-
-☀️ **Thời điểm đẹp**: Tháng 12 - Tháng 4 (Mùa khô, trời nắng đẹp ít mưa).
-💡 **Mẹo HDV**: Trải nghiệm một ly cà phê bệt hông Nhà thờ Đức Bà buổi sáng để cảm nhận nét Sài Gòn rất riêng!`,
-
-  'sài gòn': `🎩 **Dạ em chào quý khách! Sài Gòn hoa lệ xin chào quý khách!**
-
-🏙️ **Điểm dừng chân nổi tiếng**: Dinh Độc Lập, Phố đi bộ Nguyễn Huệ, Bưu điện TP, Landmark 81.
-🍲 **Món ngon đường phố**: Cơm tấm sườn bì chả, Hủ tiếu, Bánh mì, các món ốc.
-☀️ **Thời điểm đẹp**: Tháng 12 - Tháng 4.
-💡 **Mẹo HDV**: Tối đi dạo Bến Bạch Đằng ngắm du thuyền lung linh trên sông Sài Gòn nhé!`,
-
-  'bà rịa - vũng tàu': `🎩 **Dạ em chào quý khách! Vũng Tàu & Côn Đảo - Điểm hẹn đại dương xin chào!**
-
-🌊 **Hành trình biển đảo**:
-• Tắm biển Bãi Sau Vũng Tàu, Check-in Hải đăng, Tượng Chúa Kito.
-• Du lịch tâm linh & thiên nhiên tại Côn Đảo (Viếng Mộ Cô Sáu, thăm Nhà tù Côn Đảo).
-
-🍲 **Đặc sản phố biển**:
-• Bánh khọt Cô Ba/Gốc Cột Điện, Lẩu cá đuối hẻm Trương Công Định, Hải sản tươi.
-
-☀️ **Thời điểm đẹp**: Quanh năm (Côn Đảo đi đẹp nhất tháng 3 - tháng 9).
-💡 **Mẹo HDV**: Thưởng thức bánh khọt nóng hổi vừa chiên xong ăn kèm rau sống cực kỳ bắt miệng!`,
-
-  'vũng tàu': `🎩 **Dạ em chào quý khách! Vũng Tàu biển xanh nắng vàng xin chào!**
-
-🌊 **Điểm tham quan**: Bãi Sau, Bãi Trước, Tượng Chúa Giang Tay, Mũi Nghinh Phong.
-🍲 **Đặc sản ngon khó cưỡng**: Bánh khọt, Lẩu cá đuối, Bánh bông lan trứng muối.
-☀️ **Thời điểm đẹp**: Cuối tuần quanh năm.
-💡 **Mẹo HDV**: Nhớ ghé Mũi Nghinh Phong chụp ảnh cổng trời nhìn ra biển cực ấn tượng!`,
-
-  'kiên giang': `🎩 **Dạ em chào quý khách! Kiên Giang - Đảo ngọc Phú Quốc xin chào!**
-
-🌅 **Thiên đường nghỉ dưỡng**:
-• Khám phá Đảo Ngọc Phú Quốc: Bãi Sao, Grand World - Thành phố không ngủ, Sunset Sanato.
-• Đi cáp treo Hòn Thơm dài nhất thế giới, thăm Quần đảo Nam Du.
-
-🍲 **Hương vị biển đảo**:
-• Bún quậy Kiến Xây, Gỏi cá trích cuốn bánh tráng, Nhum biển nướng mỡ hành.
-
-☀️ **Thời điểm vàng**: Tháng 10 - Tháng 4 năm sau (Mùa khô Phú Quốc biển trong như ngọc).
-💡 **Bí kíp HDV**: Đón hoàng hôn tại Sunset Sanato hoặc Dinh Cậu là trải nghiệm tuyệt vời nhất!`,
-
-  'phú quốc': `🎩 **Dạ em chào quý khách! Đảo Ngọc Phú Quốc xin chào đón quý khách!**
-
-🌅 **Trải nghiệm đỉnh cao**: Grand World, VinWonders, Cáp treo Hòn Thơm, Lặn ngắm san hô Bãi Sao.
-🍲 **Món ngon trứ danh**: Bún quậy, Gỏi cá trích, Hải sản Chợ đêm Phú Quốc.
-☀️ **Thời điểm đẹp**: Tháng 10 - Tháng 4.
-💡 **Mẹo HDV**: Thưởng thức bún quậy nhớ tự tay pha chén nước chấm theo công thức riêng nhé!`,
-
-  'cần thơ': `🎩 **Dạ em chào quý khách! Cần thơ - Thủ phủ miền Tây sông nước kính chào quý khách!**
-
-🚣 **Nét đẹp sông nước Tây Nam Bộ**:
-• Đi thuyền sớm khám phá Chợ nổi Cái Răng tấp nập ghe thuyền.
-• Dạo Bến Ninh Kiều, ghé Cồn Sơn trải nghiệm làm bánh dân gian & xem cá lóc bay.
-
-🍲 **Ẩm thực đậm đà miền Tây**:
-• Lẩu mắm Cần Thơ, Bánh xèo măng xơ đống, Bánh tét lá cẩm, Hủ tiếu giòn.
-
-☀️ **Thời điểm đẹp**: Tháng 9 - 11 (Mùa nước nổi) hoặc Tháng 6 - 8 (Mùa trái cây chín mọng).
-💡 **Mẹo HDV**: Hãy dậy thật sớm từ 5h00 sáng để đi chợ nổi Cái Răng nhộn nhịp nhất ạ!`,
-
-  'tây ninh': `🎩 **Dạ em chào quý khách! Tây Ninh - Vùng đất thánh tâm linh xin chào!**
-
-⛰️ **Chinh phục & Chiêm bái**:
-• Trải nghiệm cáp treo lên đỉnh Núi Bà Đen (Nóc nhà Nam Bộ) chiêm bái Tượng Phật Bà Tây Bổ Đà Sơn.
-• Thăm Tòa Thánh Tây Ninh với kiến trúc Đạo Cao Đài độc đáo.
-
-🍲 **Đặc sản gây thương nhớ**:
-• Bánh tráng phơi sương Trảng Bàng cuốn thịt luộc rau rừng, Bò tơ Tây Ninh, Muối tôm.
-
-☀️ **Thời điểm đẹp**: Tháng 12 - Tháng 5 (Mùa khô ráo, thuận tiện đi lại).
-💡 **Mẹo HDV**: Đừng quên mua Muối tôm Tây Ninh chính gốc về làm quà cho gia đình bạn bè nhé!`
+  // ==================== I. MIỀN BẮC (25 TỈNH THÀNH) ====================
+  'hà nội': {
+    ten: 'Thủ đô Hà Nội',
+    anh: 'https://images.unsplash.com/photo-1509030450996-93f2e3d84298?w=800',
+    moTa: 'Trái tim nghìn năm văn hiến với Phố Cổ rợp bóng cây và nét văn hóa Tràng An.',
+    diemDen: 'Hồ Hoàn Kiếm, Lăng Bác, Văn Miếu Quốc Tử Giám, Hoàng thành Thăng Long, Cầu Long Biên.',
+    dacSan: 'Phở gia truyền, Bún chả Hàng Mành, Chả cá Lăng, Cà phê trứng Giảng, Bánh cốm.',
+    muaDep: 'Tháng 9 - 11 (Thu Hà Nội hoa sữa rơi, tiết trời se lạnh lãng mạn).',
+    meo: 'Thử dậy lúc 5h sáng dạo Hồ Gươm ngắm nhịp sống bình yên nhất của Thủ đô!'
+  },
+  'hải phòng': {
+    ten: 'Hải Phòng',
+    anh: 'https://images.unsplash.com/photo-1552554948-261ef40d4240?w=800',
+    moTa: 'Thành phố Hoa Phượng Đỏ sôi động với biển Cát Bà và Foodtour cực đỉnh.',
+    diemDen: 'Quần đảo Cát Bà, Vịnh Lan Hạ, Đảo Hòn Dáu, Bãi biển Đồ Sơn.',
+    dacSan: 'Bánh đa cua, Bánh mì que, Dừa dầm, Bún cáเผ็ด, Cua bể.',
+    muaDep: 'Tháng 4 - Tháng 10 (Thích hợp tắm biển & oanh tạc Foodtour).',
+    meo: 'Thuê một chiếc xe máy làm một chuyến Foodtour quanh các khu chợ trung tâm!'
+  },
+  'quảng ninh': {
+    ten: 'Quảng Ninh',
+    anh: 'https://images.unsplash.com/photo-1552554948-261ef40d4240?w=800',
+    moTa: 'Vùng đất di sản sở hữu Vịnh Hạ Long - Kỳ quan thiên nhiên thế giới.',
+    diemDen: 'Vịnh Hạ Long, Đỉnh linh thiêng Yên Tử, Đảo Ti Tốp, Sun World Bãi Cháy.',
+    dacSan: 'Chả mực Hạ Long, Bún bề bề, Sá sùng rang, Gà đồi Tiên Yên.',
+    muaDep: 'Tháng 4 - Tháng 9 (Nắng vàng, biển xanh bãi tắm đẹp).',
+    meo: 'Nên trải nghiệm tour du thuyền ngủ đêm trên Vịnh một lần trong đời!'
+  },
+  'hạ long': {
+    ten: 'Vịnh Hạ Long (Quảng Ninh)',
+    anh: 'https://images.unsplash.com/photo-1552554948-261ef40d4240?w=800',
+    moTa: 'Kỳ quan đá dựng trên làn nước xanh ngọc bích.',
+    diemDen: 'Động Thiên Cung, Hang Đầu Gỗ, Đảo Ti Tốp, Bảo tàng Quảng Ninh.',
+    dacSan: 'Bánh cuốn chả mực nóng hổi, bún hải sản.',
+    muaDep: 'Tháng 4 - Tháng 8.',
+    meo: 'Đừng quên mang theo đồ bơi và kem chống nắng nhé!'
+  },
+  'bắc ninh': {
+    ten: 'Bắc Ninh',
+    anh: ANH_MAC_DINH,
+    moTa: 'Xứ sở Kinh Bắc đậm đà làn điệu Dân ca Quan họ ngọt ngào.',
+    diemDen: 'Chùa Dâu, Chùa Bút Tháp, Đền Đô (thờ 8 vị vua Lý), Làng nghề gốm Phù Lãng.',
+    dacSan: 'Bánh phu thê Đình Bảng, Nem Bùi, Thịt chuột Dĩnh Bảng, Trà cam đường.',
+    muaDep: 'Tháng 1 - Tháng 3 âm lịch (Mùa lễ hội xuân miền Bắc).',
+    meo: 'Ghé Đền Đô vào dịp lễ hội để thưởng thức quan họ hát trên thuyền rồng!'
+  },
+  'bắc giang': {
+    ten: 'Bắc Giang',
+    anh: ANH_MAC_DINH,
+    moTa: 'Vùng đất miền đồi núi với những vườn vải thiều chín đỏ bạt ngàn.',
+    diemDen: 'Khu du lịch Tây Yên Tử, Hồ Cấm Sơn, Chùa Vĩnh Nghiêm, Đồng Cao.',
+    dacSan: 'Vải thiều Lục Ngạn, Bánh đa Kế, Mỳ Chũ, Gà đồi Yên Thế.',
+    muaDep: 'Tháng 6 - Tháng 7 (Mùa vải thiều chín đỏ cả vùng đồi).',
+    meo: 'Ghé Đồng Cao cắm trại đêm ngắm ngàn sao cực kỳ trải nghiệm!'
+  },
+  'lạng sơn': {
+    ten: 'Lạng Sơn',
+    anh: ANH_MAC_DINH,
+    moTa: 'Mảnh đất biên cương nổi tiếng với Ải Chi Lăng và phố chợ sầm uất.',
+    diemDen: 'Động Tam Thanh, Mẫu Sơn, Đỉnh Nà Lay, Phố Cổ Kỳ Lừa.',
+    dacSan: 'Vịt quay Mắc Mật, Khâu nhục, Bánh phở chua, Bánh áp chao.',
+    muaDep: 'Tháng 12 - Tháng 1 (Săn băng tuyết tại đỉnh Mẫu Sơn).',
+    meo: 'Thưởng thức vịt quay chuẩn vị đượm mùi lá mắc mật thơm nức!'
+  },
+  'cao bằng': {
+    ten: 'Cao Bằng',
+    anh: 'https://images.unsplash.com/photo-1599707303381-807c42749419?w=800',
+    moTa: 'Non nước hữu tình sở hữu Thác Bản Giốc tuyệt mỹ.',
+    diemDen: 'Thác Bản Giốc, Động Ngườm Ngao, Suối Lê Nin - Pác Bó, Hồ Thang Hen.',
+    dacSan: 'Bánh cuốn nước xương, Hạt dẻ Trùng Khánh, Vịt quay 7 vị, Lạp xưởng.',
+    muaDep: 'Tháng 8 - Tháng 10 (Mùa nước thác xanh ngọc bích rực rỡ).',
+    meo: 'Nhớ mua hạt dẻ Trùng Khánh rang nóng bùi ngậy làm quà!'
+  },
+  'hà giang': {
+    ten: 'Hà Giang',
+    anh: 'https://images.unsplash.com/photo-1508873696983-2df515122519?w=800',
+    moTa: 'Nơi địa đầu Tổ quốc với núi đá hùng vĩ và cung đường đèo huyền thoại.',
+    diemDen: 'Đèo Mã Pí Lèng, Sông Nho Quế, Cột cờ Lũng Cú, Dinh Nhà Vương, Phố cổ Đồng Văn.',
+    dacSan: 'Bánh tam giác mạch, Cháo ấu tẩu, Phở tráng đồng, Thắng cố.',
+    muaDep: 'Tháng 10 - Tháng 12 (Mùa hoa tam giác mạch nở hồng rực các sườn núi).',
+    meo: 'Tự lái xe máy đèo dốc nhớ kiểm tra phanh kỹ và đi tốc độ an toàn nhé!'
+  },
+  'tuyên quang': {
+    ten: 'Tuyên Quang',
+    anh: ANH_MAC_DINH,
+    moTa: 'Thủ đô khu giải phóng với núi rừng lịch sử và Hồ Na Hang thần tiên.',
+    diemDen: 'Khu di tích Tân Trào, Hồ Na Hang - Lâm Bình, Thác Mơ, Suối khoáng Mỹ Lâm.',
+    dacSan: 'Thịt trâu gác bếp, Cam sành Hàm Yên, Mắm ruộng Chiêm Hóa, Bánh nếp.',
+    muaDep: 'Tháng 8 âm lịch (Đón Lễ hội Trung thu lớn nhất cả nước).',
+    meo: 'Đi thuyền trên Hồ Na Hang check-in Cọc Vài Phạ tuyệt đẹp!'
+  },
+  'thái nguyên': {
+    ten: 'Thái Nguyên',
+    anh: ANH_MAC_DINH,
+    moTa: 'Đệ nhất danh trà Việt Nam với những đồi chè xanh mút mắt.',
+    diemDen: 'Đồi chè Tân Cương, Hồ Nước Cốc, Hang Phượng Hoàng - Suối Moà.',
+    dacSan: 'Trà Tân Cương, Bánh chưng Bờm, Cơm lam Định Hóa, Nem chua Đại Từ.',
+    muaDep: 'Tháng 9 - Tháng 11 (Thời tiết mát mẻ ngắm đồi chè xanh mướt).',
+    meo: 'Trải nghiệm tự tay hái chè và thưởng thức trà nóng tại vườn!'
+  },
+  'phú thọ': {
+    ten: 'Phú Thọ',
+    anh: ANH_MAC_DINH,
+    moTa: 'Đất Tổ Hùng Vương thiêng liêng cội nguồn dân tộc.',
+    diemDen: 'Khu di tích lịch sử Đền Hùng, Vườn quốc gia Xuân Sơn, Đồi chè Long Cốc.',
+    dacSan: 'Thịt chua Thanh Sơn, Bánh hòn, Trám om thịt, Bưởi Đoan Hùng.',
+    muaDep: 'Mùng 10 tháng 3 âm lịch (Giỗ Tổ Hùng Vương).',
+    meo: 'Đón bình minh trên Đồi chè Long Cốc nhấp nhô mây vờn đẹp như tranh vẽ!'
+  },
+  'bắc kạn': {
+    ten: 'Bắc Kạn',
+    anh: ANH_MAC_DINH,
+    moTa: 'Vùng đất ngàn xanh giữ trọn vẻ đẹp hoang sơ của Hồ Ba Bể.',
+    diemDen: 'Hồ Ba Bể, Động Puông, Thác Đầu Đẳng, An Mạ, Động Hua Mạ.',
+    dacSan: 'Cá nướng Hồ Ba Bể, Lạp xưởng hun khói, Tôm chua Ba Bể, Miến dong.',
+    muaDep: 'Tháng 2 - Tháng 5 (Mùa nước hồ xanh trong phẳng lặng).',
+    meo: 'Đi thuyền độc mộc dạo quanh lòng Hồ Ba Bể lắng nghe tiếng rừng!'
+  },
+  'lào cai': {
+    ten: 'Lào Cai - Sa Pa',
+    anh: 'https://images.unsplash.com/photo-1528127269322-539801943592?w=800',
+    moTa: 'Thị trấn trong mây với nét văn hóa H\'Mông đặc sắc và đỉnh Fansipan.',
+    diemDen: 'Đỉnh Fansipan 3.143m, Bản Cát Cát, Thung lũng Mường Hoa, Cầu kính Rồng Mây.',
+    dacSan: 'Lẩu cá hồi cá tầm, Thịt trâu gác bếp, Thắng cố, Rau mầm đá.',
+    muaDep: 'Tháng 9-10 (Lúa chín vàng) & Tháng 12-1 (Săn mây, tuyết rơi).',
+    meo: 'Thuê một bộ đồ dân tộc check-in Bản Cát Cát có ngay album ảnh xuất sắc!'
+  },
+  'sapa': {
+    ten: 'Sa Pa (Lào Cai)',
+    anh: 'https://images.unsplash.com/photo-1528127269322-539801943592?w=800',
+    moTa: 'Sương mờ phố núi mát mẻ quanh năm.',
+    diemDen: 'Nóc nhà Đông Dương Fansipan, Moana Sa Pa, Cổng Trời.',
+    dacSan: 'Đồ nướng đêm phố cổ, Lẩu cá tầm.',
+    muaDep: 'Tháng 9 - Tháng 1.',
+    meo: 'Nhớ mang áo ấm dày vì nhiệt độ buổi tối xuống khá thấp!'
+  },
+  'yên bái': {
+    ten: 'Yên Bái',
+    anh: ANH_MAC_DINH,
+    moTa: 'Tuyệt tác ruộng bậc thang Mù Cang Chải rực rỡ sóng lúa.',
+    diemDen: 'Ruộng bậc thang Mù Cang Chải, Đèo Khau Phạ, Hồ Thác Bà, Suối nước nóng Trạm Tấu.',
+    dacSan: 'Cốm Tú Lệ, Thịt trâu sấy, Bánh chưng đen, Chè Shan tuyết Suối Giàng.',
+    muaDep: 'Tháng 9 - Tháng 10 (Mùa lúa chín vàng óng bạt ngàn).',
+    meo: 'Trải nghiệm nhảy dù dù lượn Bay trên mùa vàng tại Đèo Khau Phạ!'
+  },
+  'lai châu': {
+    ten: 'Lai Châu',
+    anh: ANH_MAC_DINH,
+    moTa: 'Vùng đất hiểm trở kỳ vĩ với những đỉnh núi cao nhất Việt Nam.',
+    diemDen: 'Đèo O Quy Hồ, Đỉnh Pu Si Lung, Pu Ta Leng, Bản Sin Suối Hồ.',
+    dacSan: 'Lợn kẹp nách, Pa pỉnh tộp (Cá nướng), Rượu ngô Sìn Hồ.',
+    muaDep: 'Tháng 9 - Tháng 11 (Săn mây đỉnh đèo O Quy Hồ).',
+    meo: 'Đón hoàng hôn tại Cổng trời O Quy Hồ ngắm mặt trời lặn hùng vĩ!'
+  },
+  'điện biên': {
+    ten: 'Điện Biên',
+    anh: ANH_MAC_DINH,
+    moTa: 'Mảnh đất lịch sử lừng lẫy năm châu chấn động địa cầu.',
+    diemDen: 'Đồi A1, Tượng đài Chiến thắng Điện Biên Phủ, Hầm De Castries, Cánh đồng Mường Thanh.',
+    dacSan: 'Thịt xông khói, Sâu chít, Bắp mắm, Bánh ăm tẩu.',
+    muaDep: 'Tháng 3 (Mùa hoa ban nở trắng trời Tây Bắc).',
+    meo: 'Ghé thăm nghĩa trang liệt sĩ A1 để thắp hương tưởng niệm!'
+  },
+  'sơn la': {
+    ten: 'Sơn La',
+    anh: ANH_MAC_DINH,
+    moTa: 'Cao nguyên Mộc Châu xanh ngát thảo nguyên và hoa cải trắng.',
+    diemDen: 'Cao nguyên Mộc Châu, Rừng thông Bản Áng, Đồi chè Trái Tim, Thác Dải Yếm.',
+    dacSan: 'Bê chao Mộc Châu, Cơm lam, Bún mọc, Nậm pịa.',
+    muaDep: 'Tháng 1 - Tháng 2 (Mùa hoa mận, hoa mơ nở trắng rừng).',
+    meo: 'Thưởng thức đĩa Bê chao nóng hổi ngay khi vừa chiên xong!'
+  },
+  'hòa bình': {
+    ten: 'Hòa Bình',
+    anh: ANH_MAC_DINH,
+    moTa: 'Cửa ngõ Tây Bắc đậm đà bản sắc Mường và Hồ thủy điện bao la.',
+    diemDen: 'Thung lũng Mai Châu, Hồ Hòa Bình, Thác Gỡ, Bản Lác.',
+    dacSan: 'Cơm lam nướng lá chuối, Lợn mán thui luộc, Bánh ốc Mường.',
+    muaDep: 'Tháng 10 - Tháng 4 (Mai Châu thời tiết cực mát mẻ).',
+    meo: 'Thuê nhà sàn tại Bản Lác nghỉ đêm và thưởng thức múa xòe Mường!'
+  },
+  'hà nam': {
+    ten: 'Hà Nam',
+    anh: ANH_MAC_DINH,
+    moTa: 'Vùng đất tâm linh yên bình nơi ven bờ sông Đáy.',
+    diemDen: 'Chùa Tam Chúc (Ngôi chùa lớn nhất thế giới), Chùa Địa Tạng Phi Lai Tự, Ngôi nhà Bá Kiến.',
+    dacSan: 'Cá kho Cổ Hoàng / Vũ Đại, Bánh cuốn Phủ Lý, Hồng nhân hậu.',
+    muaDep: 'Tháng 1 - Tháng 3 âm lịch (Mùa chiêm bái lễ Phật).',
+    meo: 'Đi thuyền trên lòng Hồ Tam Chúc ngắm cảnh núi non hùng vĩ!'
+  },
+  'hải dương': {
+    ten: 'Hải Dương',
+    anh: ANH_MAC_DINH,
+    moTa: 'Xứ Đông cổ kính với đặc sản Bánh đậu xanh trứ danh.',
+    diemDen: 'Khu di tích Côn Sơn - Kiếp Bạc, Đảo Cò Chi Lăng Nam, Chùa Thanh Mai.',
+    dacSan: 'Bánh đậu xanh, Bánh gai Ninh Giang, Rươi Tứ Kỳ, Vải thiều Thanh Hà.',
+    muaDep: 'Tháng 9 - Tháng 11 (Lễ hội Côn Sơn - Kiếp Bạc).',
+    meo: 'Thưởng thức bánh đậu xanh tan trong miệng cùng tách trà mạn nóng!'
+  },
+  'hưng yên': {
+    ten: 'Hưng Yên',
+    anh: ANH_MAC_DINH,
+    moTa: 'Phố Hiến xưa "Thứ nhất Kinh Kỳ, thứ nhì Phố Hiến".',
+    diemDen: 'Cây đa Banyan, Chùa Chuông, Văn Miếu Xích Đằng, Hồ Nguyệt Đức.',
+    dacSan: 'Nhãn lồng Hưng Yên, Bún thang lợn, Ếch om Phượng Tường, Chè hạt sen.',
+    muaDep: 'Tháng 7 - Tháng 8 (Đúng mùa thu hoạch nhãn lồng mọng ngọt).',
+    meo: 'Mua nhãn lồng chính gốc Phố Hiến làm quà thơm ngọt!'
+  },
+  'nam định': {
+    ten: 'Nam Định',
+    anh: ANH_MAC_DINH,
+    moTa: 'Đất Cố đô Trần văn hiến và những nhà thờ kiến trúc Âu tuyệt đẹp.',
+    diemDen: 'Đền Trần, Nhà thờ đổ Văn Lý, Nhà thờ Bùi Chu, Tòa thánh Phương Chính.',
+    dacSan: 'Phở bò Nam Định, Bánh xíu báo, Bánh gai Bà Thi, Kẹo thần tài.',
+    muaDep: 'Đêm 14 tháng Giêng âm lịch (Lễ khai ấn Đền Trần).',
+    meo: 'Sáng làm đĩa Bánh xíu báo nóng hổi kèm tô Phở bò gia truyền!'
+  },
+  'ninh bình': {
+    ten: 'Ninh Bình',
+    anh: 'https://images.unsplash.com/photo-1528127269322-539801943592?w=800',
+    moTa: 'Tuyệt tác Cố đô xưa với di sản thế giới Tràng An sơn thủy hữu tình.',
+    diemDen: 'Tràng An, Tam Cốc - Bích Động, Hang Múa, Chùa Bái Đính, Tuyệt Tình Cốc.',
+    dacSan: 'Cơm cháy sốt dê, Thịt dê núi tái chanh, Ốc núi Ninh Bình.',
+    muaDep: 'Tháng 1 - Tháng 5 (Đi lễ xuân & Mùa lúa vàng Tam Cốc rực rỡ).',
+    meo: 'Chinh phục Hang Múa 500 bậc thang ngắm trọn thung lũng lúa!'
+  },
+  'thái bình': {
+    ten: 'Thái Bình',
+    anh: ANH_MAC_DINH,
+    moTa: 'Quê hương 5 tấn với bãi biển hoang sơ và Chùa Keo cổ kính.',
+    diemDen: 'Chùa Keo, Biển vô cực Quang Lang, Biển Đồng Châu, Cồn Vần.',
+    dacSan: 'Bánh cay Thái Bình, Bún bung hoa chuối, Canh cá quỳnh cừ.',
+    muaDep: 'Tháng 9 - Tháng 10 (Săn bình minh tuyệt đẹp trên biển vô cực).',
+    meo: 'Thức dậy từ 4h sáng ra biển Quang Lang ngắm mặt nước soi bóng trời!'
+  },
+  'vĩnh phúc': {
+    ten: 'Vĩnh Phúc',
+    anh: ANH_MAC_DINH,
+    moTa: 'Thị trấn Tam Đảo bồng bềnh mây núi gần sát Hà Nội.',
+    diemDen: 'Tam Đảo, Danh thắng Tây Thiên, Hồ Đại Lải, Làng hoa Me Linh.',
+    dacSan: 'Ngọn su su xào tỏi, Bánh chưng gù, Dứa Tam Dương, Bánh hòn.',
+    muaDep: 'Quanh năm (Lý tưởng cho chuyến đi trốn cuối tuần).',
+    meo: 'Nghỉ dưỡng Tam Đảo thưởng thức đĩa ngọn su su xào giòn ngọt!'
+  },
+
+  // ==================== II. MIỀN TRUNG & TÂY NGUYÊN (19 TỈNH THÀNH) ====================
+  'thanh hóa': {
+    ten: 'Thanh Hóa',
+    anh: ANH_MAC_DINH,
+    moTa: 'Mảnh đất xứ Thanh vừa có biển Sầm Sơn rộn ràng vừa có Pù Luông xanh ngát.',
+    diemDen: 'Biển Sầm Sơn, Khu bảo tồn Pù Luông, Thành nhà Hồ, Suối cá thần Cẩm Lương.',
+    dacSan: 'Nem chua Thanh Hóa, Chả tôm, Bánh răng bừa, Mắm tép Bỉm Sơn.',
+    muaDep: 'Tháng 5 - Tháng 10 (Mùa hè tắm biển Sầm Sơn / Ngắm lúa Pù Luông).',
+    meo: 'Mua nem chua chuẩn Thanh Hóa về làm quà nhắm bia cực mê!'
+  },
+  'nghệ an': {
+    ten: 'Nghệ An',
+    anh: ANH_MAC_DINH,
+    moTa: 'Quê hương Chủ tịch Hồ Chí Minh vĩ đại với biển Cửa Lò bao la.',
+    diemDen: 'Khu di tích Kim Liên (Quê Bác), Biển Cửa Lò, Đồi chè Thanh Chương, Đảo Lan.',
+    dacSan: 'Súp lươn Nghệ An, Nhút Thanh Chương, Tương Nam Đàn, Cam Xã Đoài.',
+    muaDep: 'Tháng 6 - Tháng 8 (Mùa du lịch biển Cửa Lò rộn ràng).',
+    meo: 'Thưởng thức tô Súp lươn cay nồng kèm bánh mì giòn tan buổi sáng!'
+  },
+  'hà tĩnh': {
+    ten: 'Hà Tĩnh',
+    anh: ANH_MAC_DINH,
+    moTa: 'Khúc ruột miền Trung kiên cường với Biển Thiên Cầm trong xanh.',
+    diemDen: 'Biển Thiên Cầm, Ngã ba Đồng Lộc, Chùa Hương Tích, Hồ Kẻ Gỗ.',
+    dacSan: 'Kẹo cu đơ Hà Tĩnh, Bánh gối, Bún bò Đội Cung, Hến sông La.',
+    muaDep: 'Tháng 5 - Tháng 8 (Tắm biển Thiên Cầm sóng êm đềm).',
+    meo: 'Nhâm nhi miếng kẹo cu đơ giòn bùi bên tách trà xanh nóng!'
+  },
+  'quảng bình': {
+    ten: 'Quảng Bình',
+    anh: ANH_MAC_DINH,
+    moTa: 'Vương quốc hang động thế giới sở hữu Phong Nha - Kẻ Bàng.',
+    diemDen: 'Động Phong Nha, Động Thiên Đường, Hang Sơn Đoòng, Sông Chày - Hang Tối, Biển Nhật Lệ.',
+    dacSan: 'Bánh lọc chao, Lẩu cá khoai, Bánh xèo Quảng Hòa, Khoai đèo.',
+    muaDep: 'Tháng 4 - Tháng 8 (Mùa khô thuận lợi khám phá hang động).',
+    meo: 'Thử chèo thuyền Kayak trên dòng Sông Chày xanh màu ngọc bích!'
+  },
+  'quảng trị': {
+    ten: 'Quảng trị',
+    anh: ANH_MAC_DINH,
+    moTa: 'Vùng đất thiêng anh hùng gắn liền với những chiến công lịch sử.',
+    diemDen: 'Thành cổ Quảng Trị, Nghĩa trang Trường Sơn, Cầu Hiền Lương - Sông Bến Hải, Địa đạo Vịnh Mốc.',
+    dacSan: 'Bánh lọc Mỹ Chánh, Bún hến Mai Xá, Cháo vạt giường, Trà chè vằng.',
+    muaDep: 'Tháng 3 - Tháng 8 (Thời tiết khô ráo thuận tiện tham quan).',
+    meo: 'Đến dâng hương tại Thành cổ Quảng Trị để tri ân các anh hùng liệt sĩ!'
+  },
+  'thừa thiên huế': {
+    ten: 'Cố đô Huế',
+    anh: 'https://images.unsplash.com/photo-1569154941061-e231b4725ef1?w=800',
+    moTa: 'Thành phố mộng mơ trầm mặc giữ gìn hồn di sản dân tộc.',
+    diemDen: 'Đại Nội Huế, Chùa Thiên Mụ, Lăng Khải Định, Lăng Tự Đức, Đồi Vọng Cảnh.',
+    dacSan: 'Bún bò Huế, Cơm hến, Bánh bèo - nậm - lọc, Chè hẻm 20 món.',
+    muaDep: 'Tháng 1 - Tháng 4 (Thời tiết mát mẻ dễ chịu nhất).',
+    meo: 'Thuê áo dài chụp ảnh cổ phục tại Đại Nội và nghe Ca Huế Sông Hương!'
+  },
+  'huế': {
+    ten: 'Xứ Huế mộng mơ',
+    anh: 'https://images.unsplash.com/photo-1569154941061-e231b4725ef1?w=800',
+    moTa: 'Vẻ đẹp hoàng cung trầm mặc lãng mạn.',
+    diemDen: 'Kinh thành Huế, Đồi Thiên An, Chùa Thiên Mụ.',
+    dacSan: 'Bún bò Huế chuẩn vị, Bánh bột lọc gói lá chuối.',
+    muaDep: 'Tháng 1 - Tháng 4.',
+    meo: 'Tối đi thuyền rồng ngắm hoàng hôn và nghe ca Huế trên sông Hương!'
+  },
+  'đà nẵng': {
+    ten: 'Đà Nẵng',
+    anh: 'https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?w=800',
+    moTa: 'Thành phố đáng sống nhất Việt Nam với Cầu Vàng và biển Mỹ Khê.',
+    diemDen: 'Sun World Bà Nà Hills, Cầu Rồng, Biển Mỹ Khê, Bán đảo Sơn Trà, Ngũ Hành Sơn.',
+    dacSan: 'Mì Quảng, Bánh tráng thịt heo 2 đầu da, Bún chả cá, Hải sản.',
+    muaDep: 'Tháng 2 - Tháng 8 (Nắng đẹp, biển êm sóng nhẹ).',
+    meo: 'Xem Cầu Rồng phun lửa & nước lúc 21h tối Thứ 7 và Chủ Nhật!'
+  },
+  'quảng nam': {
+    ten: 'Quảng Nam',
+    anh: 'https://images.unsplash.com/photo-1552353617-3bfd679b3bdd?w=800',
+    moTa: 'Mảnh đất 2 di sản thế giới Phố cổ Hội An và Thánh địa Mỹ Sơn.',
+    diemDen: 'Phố cổ Hội An, Thánh địa Mỹ Sơn, Cù Lao Chàm, Rừng dừa Bảy Mẫu.',
+    dacSan: 'Cao lầu, Cơm gà Hội An, Mì Quảng Phú Chiêm, Bánh đập hến xào.',
+    muaDep: 'Tháng 2 - Tháng 7.',
+    meo: 'Đến Hội An từ 17h chiều để ngắm khoảnh khắc phố cổ lên đèn lung linh!'
+  },
+  'hội an': {
+    ten: 'Phố cổ Hội An (Quảng Nam)',
+    anh: 'https://images.unsplash.com/photo-1552353617-3bfd679b3bdd?w=800',
+    moTa: 'Không gian hoài cổ rợp bóng đèn lồng bên sông Hoài.',
+    diemDen: 'Chùa Cầu, Nhà cổ Tấn Ký, Rừng dừa Bảy Mẫu, Cù Lao Chàm.',
+    dacSan: 'Bánh mì Phượng, Cao lầu, Bánh hoa hồng trắng.',
+    muaDep: 'Tháng 2 - Tháng 7.',
+    meo: 'Đi thuyền thả đèn hoa đăng trên sông Hoài gửi gắm ước nguyện!'
+  },
+  'quảng ngãi': {
+    ten: 'Quảng Ngãi',
+    anh: ANH_MAC_DINH,
+    moTa: 'Quê hương Đảo Lý Sơn - Thiên đường núi lửa giữa đại dương.',
+    diemDen: 'Đảo Lý Sơn (Cổng Tỏ Vò, Đỉnh Thới Lới), Bãi biển Mỹ Khê Quảng Ngãi, Ba Làng An.',
+    dacSan: 'Don Quảng Ngãi, Cúm núm Lý Sơn, Tỏi cô đơn, Kẹo gương, Bánh đập.',
+    muaDep: 'Tháng 4 - Tháng 8 (Biển lặng sóng vô cùng thích hợp du lịch đảo).',
+    meo: 'Check-in Cổng Tỏ Vò Lý Sơn vào lúc bình minh đẹp mê ngẩn!'
+  },
+  'bình định': {
+    ten: 'Bình Định - Quy Nhơn',
+    anh: ANH_MAC_DINH,
+    moTa: 'Đất võ trời văn với biển Quy Nhơn trong xanh và Kỳ Co - Eo Gió.',
+    diemDen: 'Eo Gió, Bãi tắm Kỳ Co, Tháp Chăm Bánh Ít, Khu dã ngoại Trung Lương, Đồi cát Phương Mai.',
+    dacSan: 'Bánh xèo tôm nhảy, Bún chả cá Quy Nhơn, Tré bó rơm, Bánh ít lá gai.',
+    muaDep: 'Tháng 3 - Tháng 9 (Thời tiết nắng trong, biển trong như ngọc).',
+    meo: 'Đến Eo Gió ngắm con đường đi bộ ven biển đẹp nhất Việt Nam!'
+  },
+  'phú yên': {
+    ten: 'Phú Yên',
+    anh: ANH_MAC_DINH,
+    moTa: 'Xứ sở "Tôi thấy hoa vàng trên cỏ xanh" bình yên rợp sóng.',
+    diemDen: 'Gành Đá Đĩa, Mũi Điện (Đón bình minh sớm nhất), Bãi Xép, Tháp Nghinh Phong, Cầu gỗ Ông Tơ.',
+    dacSan: 'Mắt cá ngừ đại dương hầm thuốc bắc, Bánh hỏi lòng heo, Sò huyết Ô Loan, Cơm gà.',
+    muaDep: 'Tháng 1 - Tháng 8 (Trời xanh mát, bãi biển sóng em).',
+    meo: 'Đón những tia nắng bình minh đầu tiên trên đất liền tại Mũi Điện!'
+  },
+  'khánh hòa': {
+    ten: 'Khánh Hòa - Nha Trang',
+    anh: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800',
+    moTa: 'Thiên đường biển đảo tuyệt đẹp với Vịnh Nha Trang quyến rũ.',
+    diemDen: 'VinWonders Nha Trang, Hòn Mun, Hòn Tằm, Tháp Bà Ponagar, Biển Dốc Lết.',
+    dacSan: 'Nem nướng Ninh Hòa, Bún sứa, Bò Lạc Cảnh, Hải sản Chợ Đêm.',
+    muaDep: 'Tháng 1 - Tháng 8 (Nắng đẹp biển êm).',
+    meo: 'Nên trải nghiệm dịch vụ tắm bùn khoáng nóng thư giãn thư thái!'
+  },
+  'nha trang': {
+    ten: 'Thành phố Nha Trang',
+    anh: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800',
+    moTa: 'Phố biển năng động với hàng dừa xanh ngát.',
+    diemDen: 'Đảo Hòn Mun, Đảo Tằm, VinWonders, Tháp Bà Ponagar.',
+    dacSan: 'Bún chả cá Nha Trang, Nem nướng Đặng Văn Quyên.',
+    muaDep: 'Tháng 1 - Tháng 8.',
+    meo: 'Tối đi dạo đường bờ biển Trần Phú tận hưởng gió biển mát rượi!'
+  },
+  'ninh thuận': {
+    ten: 'Ninh Thuận',
+    anh: ANH_MAC_DINH,
+    moTa: 'Vùng đất nắng gió với những vườn nho trĩu quả và Hang Rái kỳ ảo.',
+    diemDen: 'Vịnh Vĩnh Hy, Hang Rái, Đồng cừu An Hòa, Tháp Po Klong Garai, Vườn nho Thái An.',
+    dacSan: 'Bánh căn / Bánh xèo Phan Rang, Nho tươi Ninh Thuận, Thịt dông cát, Cừu nướng.',
+    muaDep: 'Tháng 8 - Tháng 10 (Đúng mùa thu hoạch nho chín mọng).',
+    meo: 'Vào tận vườn nho Thái An tự tay hái và thưởng thức tại chỗ!'
+  },
+  'bình thuận': {
+    ten: 'Bình Thuận - Phan Thiết',
+    anh: ANH_MAC_DINH,
+    moTa: 'Thủ đô resort Mũi Né với những đồi cát mênh mông như sa mạc.',
+    diemDen: 'Đồi Cát Bay Mũi Né, Bàu Trắng, Suối Tiên, Làng chài Mũi Né, Hải đăng Ke Ga.',
+    dacSan: 'Lẩu thả Phan Thiết, Bánh xèo Tuyên Quang, Mực một nắng, Bánh quấy.',
+    muaDep: 'Tháng 11 - Tháng 4 năm sau (Mùa biển xanh rực rỡ, gió lộng).',
+    meo: 'Trải nghiệm lái xe địa hình mô tô vượt đỉnh Đồi cát Bàu Trắng!'
+  },
+  'kon tum': {
+    ten: 'Kon Tum',
+    anh: ANH_MAC_DINH,
+    moTa: 'Vùng đất Tây Nguyên cổ kính nơi có Nhà thờ Gỗ độc đáo.',
+    diemDen: 'Nhà thờ Gỗ Kon Tum, Tòa Giám mục, Cầu treo Kon Klor, Măng Đen (Đà Lạt thứ 2).',
+    dacSan: 'Gỏi lá Kon Tum, Cơm lam gà nướng, Cá tầm Măng Đen, Rượu cần.',
+    muaDep: 'Tháng 11 - Tháng 4 (Mùa hoa dã quỳ & hoa cà phê nở trắng rừng).',
+    meo: 'Thưởng thức đĩa Gỏi lá quy tụ hơn 40 loại lá rừng Tây Nguyên!'
+  },
+  'gia lai': {
+    ten: 'Gia Lai',
+    anh: ANH_MAC_DINH,
+    moTa: 'Phố núi Pleiku rợp bóng thông reo và Biển Hồ T\'Nưng xanh ngắt.',
+    diemDen: 'Biển Hồ T\'Nưng, Núi lửa Chư Đăng Ya, Chùa Minh Thành, Hàng thông trăm tuổi.',
+    dacSan: 'Phở hai bát Pleiku (Phở khô), Bún mắm nêm, Gà nướng Sa Bộc, Bò một nắng.',
+    muaDep: 'Tháng 11 - Tháng 12 (Mùa hoa dã quỳ nở vàng rực Núi lửa Chư Đăng Ya).',
+    meo: 'Ăn Phở khô nhớ dùng 1 bát khô riêng và 1 bát nước dùng riêng đúng chuẩn!'
+  },
+  'đắk lắk': {
+    ten: 'Đắk Lắk',
+    anh: ANH_MAC_DINH,
+    moTa: 'Thủ phủ cà phê Việt Nam với Buôn Ma Thuột hùng vĩ.',
+    diemDen: 'Bảo tàng Thế giới Cà phê, Buôn Đôn, Cụm thác Dray Nur - Dray Sap, Hồ Lắk.',
+    dacSan: 'Bún đỏ Buôn Ma Thuột, Gà nướng cơm lam, Lẩu cá lăng sông Sêrêpôk, Cà phê Buôn Ma Thuột.',
+    muaDep: 'Tháng 12 - Tháng 3 (Mùa hoa cà phê nở trắng bạt ngàn các ngọn đồi).',
+    meo: 'Ghé Bảo tàng Cà phê thưởng thức ly cà phê đậm đà nhất Tây Nguyên!'
+  },
+  'đắk nông': {
+    ten: 'Đắk Nông',
+    anh: ANH_MAC_DINH,
+    moTa: 'Công viên địa chất toàn cầu với Công viên Hang động Núi lửa Tà Đùng.',
+    diemDen: 'Hồ Tà Đùng (Vịnh Hạ Long trên Tây Nguyên), Thác Liêng Nung, Thác Đray Sap.',
+    dacSan: 'Cá lăng nướng than hồng, Rượu cần, Bún mắm miền Tây tại chợ, Cam sành.',
+    muaDep: 'Tháng 11 - Tháng 4 (Mùa khô hồ Tà Đùng nước xanh ngắt đẹp nhất).',
+    meo: 'Check-in ngắm toàn cảnh các hòn đảo nhỏ trên Hồ Tà Đùng từ trên cao!'
+  },
+  'lâm đồng': {
+    ten: 'Lâm Đồng - Đà Lạt',
+    anh: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800',
+    moTa: 'Thành phố sương mờ lãng mạn xứ sở ngàn hoa.',
+    diemDen: 'Hồ Tuyền Lâm, Quảng trường Lâm Viên, Đồi chè Cầu Đất, Langbiang, Chợ đêm Đà Lạt.',
+    dacSan: 'Lẩu gà lá é, Lẩu bò Ba Toa, Bánh mì xíu mại nóng, Bánh căn, Kem bơ.',
+    muaDep: 'Tháng 11 - Tháng 4 (Mùa dã quỳ, mai anh đào & săn mây).',
+    meo: 'Nhớ mang áo len dày dạo chợ đêm; dậy 4h30 đi săn mây Cầu Đất!'
+  },
+  'đà lạt': {
+    ten: 'Thành phố Đà Lạt',
+    anh: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800',
+    moTa: 'Thành phố ngàn hoa với khí hậu se lạnh quanh năm.',
+    diemDen: 'Hồ Xuân Hương, Thung lũng Tình Yêu, Thiền viện Trúc Lâm.',
+    dacSan: 'Bánh căn góc cây bơ, Lẩu gà lá é Tao Ngộ, Sữa đậu nành nóng.',
+    muaDep: 'Tháng 11 - Tháng 4.',
+    meo: 'Thuê chiếc xe máy chạy quanh các con dốc ngắm hoàng hôn thung lũng!'
+  },
+
+  // ==================== III. MIỀN NAM (19 TỈNH THÀNH) ====================
+  'tp.hồ chí minh': {
+    ten: 'TP. Hồ Chí Minh (Sài Gòn)',
+    anh: 'https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=800',
+    moTa: 'Trung tâm phồn hoa, năng động và không ngủ.',
+    diemDen: 'Dinh Độc Lập, Bưu điện TP, Landmark 81, Phố đi bộ Nguyễn Huệ, Địa đạo Củ Chi.',
+    dacSan: 'Cơm tấm sườn bì chả, Hủ tiếu Nam Vang, Bánh mì Sài Gòn, Ốc đêm đường Vĩnh Khánh.',
+    muaDep: 'Tháng 12 - Tháng 4 (Mùa khô trời nắng đẹp trọn vẹn).',
+    meo: 'Ngồi cà phê bệt hông Nhà thờ Đức Bà để cảm nhận chất Sài Gòn rất riêng!'
+  },
+  'sài gòn': {
+    ten: 'Sài Gòn hoa lệ',
+    anh: 'https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=800',
+    moTa: 'Sôi động hiện đại với nét văn hóa đường phố phóng khoáng.',
+    diemDen: 'Chợ Bến Thành, Bến Bạch Đằng, Bùi Viện, Landmark 81.',
+    dacSan: 'Cơm tấm đêm, Bánh mì, Hủ tiếu gõ, Trà sữa.',
+    muaDep: 'Tháng 12 - Tháng 4.',
+    meo: 'Đi Waterbus ngắm sông Sài Gòn rực rỡ lúc hoàng hôn!'
+  },
+  'bà rịa - vũng tàu': {
+    ten: 'Bà Rịa - Vũng Tàu',
+    anh: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800',
+    moTa: 'Phố biển Vũng Tàu rộn ràng và Côn Đảo linh thiêng giữa đại dương.',
+    diemDen: 'Bãi Sau Vũng Tàu, Tượng Chúa Kito, Mũi Nghinh Phong, Côn Đảo (Viếng Mộ Cô Sáu).',
+    dacSan: 'Bánh khọt Cô Ba, Lẩu cá đuối Trương Công Định, Bánh bông lan trứng muối.',
+    muaDep: 'Quanh năm (Côn Đảo đi đẹp nhất từ tháng 3 - tháng 9).',
+    meo: 'Thưởng thức đĩa bánh khọt giòn rụm vừa chiên xong kèm rau sống!'
+  },
+  'vũng tàu': {
+    ten: 'Thành phố Vũng Tàu',
+    anh: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800',
+    moTa: 'Biển xanh gần gũi thích hợp cho nghỉ dưỡng ngẫu hứng.',
+    diemDen: 'Hải đăng Vũng Tàu, Bãi Trước, Bãi Sau, Mũi Nghinh Phong.',
+    dacSan: 'Lẩu cá đuối, Bánh khọt Gốc Cột Điện.',
+    muaDep: 'Cuối tuần quanh năm.',
+    meo: 'Check-in Cổng trời Mũi Nghinh Phong nhìn thẳng ra biển rộng!'
+  },
+  'bình dương': {
+    ten: 'Bình Dương',
+    anh: ANH_MAC_DINH,
+    moTa: 'Thủ phủ công nghiệp kết hợp khu du lịch tâm linh & làng nghề cổ.',
+    diemDen: 'Khu du lịch Đại Nam, Chùa Bà Thiên Hậu, Làng gốm Lái Thiêu, Nhà cổ Trần Văn Lạc.',
+    dacSan: 'Bánh bèo bì Chợ Búng, Lẩu bò mắm ruốc, Măng cụt Lái Thiêu, Gà nướng niêu.',
+    muaDep: 'Tháng 5 - Tháng 8 (Đúng mùa trái cây chín rộ Lái Thiêu).',
+    meo: 'Vào vườn măng cụt Lái Thiêu thưởng thức gỏi gà măng cụt trứ danh!'
+  },
+  'bình phước': {
+    ten: 'Bình Phước',
+    anh: ANH_MAC_DINH,
+    moTa: 'Mảnh đất miền Đông Nam Bộ rợp bóng cao su và vườn điều bạt ngàn.',
+    diemDen: 'Vườn quốc gia Bù Gia Mập, Núi Bà Rá - Hồ Thác Mơ, Trảng cỏ Bù Lách.',
+    dacSan: 'Hạt điều rang muối Bình Phước, Đọt mây nướng, Vịt quay lá mắc mật, Ve sầu chiên giòn.',
+    muaDep: 'Tháng 12 - Tháng 3 (Mùa lá cao su đổ vàng thay lá siêu đẹp).',
+    meo: 'Check-in con đường lá cao su mùa thay lá như khung cảnh châu Âu!'
+  },
+  'đồng nai': {
+    ten: 'Đồng Nai',
+    anh: ANH_MAC_DINH,
+    moTa: 'Mảnh đất miền Đông giàu thiên nhiên hoang sơ và trái cây mọng ngọt.',
+    diemDen: 'Vườn quốc gia Cát Tiên, Khu du lịch Bửu Long, Thác Giang Điền, Vườn trái cây Long Khánh.',
+    dacSan: 'Trái cây Long Khánh (Chôm chôm, sầu riêng), Dát bò Đồng Nai, Lẩu lá khổ qua rừng.',
+    muaDep: 'Tháng 5 - Tháng 8 (Mùa trái cây Long Khánh chín rộ).',
+    meo: 'Ghé Vườn quốc gia Cát Tiên xem thú ban đêm cực thú vị!'
+  },
+  'tây ninh': {
+    ten: 'Tây Ninh',
+    anh: 'https://images.unsplash.com/photo-1528127269322-539801943592?w=800',
+    moTa: 'Vùng đất thánh tâm linh với Nóc nhà Nam Bộ Núi Bà Đen.',
+    diemDen: 'Núi Bà Đen, Tòa Thánh Tây Ninh, Hồ Dầu Tiếng, Ma Thiên Lãnh.',
+    dacSan: 'Bánh tráng phơi sương Trảng Bàng cuốn rau rừng, Bò tơ Tây Ninh, Muối tôm.',
+    muaDep: 'Tháng 12 - Tháng 5 (Mùa khô thuận tiện đi cáp treo).',
+    meo: 'Đi cáp treo lên đỉnh Núi Bà Đen chiêm bái Tượng Phật Bà Tây Bổ Đà Sơn!'
+  },
+  'an giang': {
+    ten: 'An Giang',
+    anh: ANH_MAC_DINH,
+    moTa: 'Vùng đất Thất Sơn huyền bí với Rừng tràm Tra Cửu xanh ngát.',
+    diemDen: 'Rừng tràm Trà Cửu, Miếu Bà Chúa Xúc Núi Sam, Núi Cấm, Chợ Mới.',
+    dacSan: 'Mắm Châu Đốc, Lẩu mắm, Bánh bò thốt nốt, Gà đốt Mộc Bài, Bún cá Châu Đốc.',
+    muaDep: 'Tháng 9 - Tháng 11 (Mùa nước nổi miền Tây đẹp rực rỡ).',
+    meo: 'Đi tắc ráng lướt qua thảm bèo xanh mướt tại Rừng tràm Trà Cửu!'
+  },
+  'bạc liêu': {
+    ten: 'Bạc Liêu',
+    anh: ANH_MAC_DINH,
+    moTa: 'Quê hương Công tử Bạc Liêu và bản Đạ Cổ Hoài Lang bất hủ.',
+    diemDen: 'Nhà Công tử Bạc Liêu, Cánh đồng quạt gió Bạc Liêu, Nhà hát Cao Văn Lầu, Chùa Ghositaram.',
+    dacSan: 'Lẩu mắm Bạc Liêu, Bánh xèo Bạc Liêu, Ba khía muối, Bún nước lèo.',
+    muaDep: 'Quanh năm (Trời nắng xanh check-in cánh đồng quạt gió đẹp nhất).',
+    meo: 'Ghé Nhà Công tử Bạc Liêu nghe lại những giai thoại hào sảng xưa!'
+  },
+  'bến tre': {
+    ten: 'Bến Tre',
+    anh: ANH_MAC_DINH,
+    moTa: 'Xứ sở dừa xanh mát dải đất phù sa đồng bằng.',
+    diemDen: 'Cồn Phụng, Khu du lịch Lan Vương, Vườn trái cây Cái Mơn, Chùa Tuyên Linh.',
+    dacSan: 'Kẹo dừa Bến Tre, Cơm dừa, Dừa sáp, Bánh xèo hến Cồn Phụng, Đuông dừa.',
+    muaDep: 'Tháng 6 - Tháng 8 (Mùa trái cây chín trĩu cành).',
+    meo: 'Chèo xuồng ba lá trong các rạch dừa nước rợp bóng mát!'
+  },
+  'cà mau': {
+    ten: 'Cà Mau',
+    anh: ANH_MAC_DINH,
+    moTa: 'Mảnh đất cực Nam Tổ quốc nơi rừng u minh chạm biển bao la.',
+    diemDen: 'Mũi Cà Mau (Cột mốc cực Nam), Vườn quốc gia U Minh Hạ, Hòn Đá Bạc, Đầm Thị Tường.',
+    dacSan: 'Cua Cà Mau trứ danh, Ba khía Rạch Gốc, Cá thòi lòi nướng muối ớt, Lẩu mắm.',
+    muaDep: 'Tháng 12 - Tháng 4 (Mùa khô thuận tiện di chuyển ra Mũi).',
+    meo: 'Check-in Cột mốc tọa độ quốc gia GPS 0001 tại Đất Mũi Cà Mau!'
+  },
+  'cần thơ': {
+    ten: 'Thủ phủ Cần Thơ',
+    anh: ANH_MAC_DINH,
+    moTa: 'Thủ phủ miền Tây sông nước đong đầy tình người.',
+    diemDen: 'Chợ nổi Cái Răng, Bến Ninh Kiều, Cồn Sơn, Nhà cổ Bình Thủy.',
+    dacSan: 'Lẩu mắm Cần Thơ, Bánh xèo măng xơ đống, Bánh tét lá cẩm, Hủ tiếu giòn.',
+    muaDep: 'Tháng 9 - 11 (Mùa nước nổi) & Tháng 6 - 8 (Mùa trái cây chín).',
+    meo: 'Đi chợ nổi Cái Răng từ 5h00 sáng để cảm nhận nhịp sống nhộn nhịp!'
+  },
+  'đồng tháp': {
+    ten: 'Đồng Tháp',
+    anh: ANH_MAC_DINH,
+    moTa: 'Đất Sen Hồng rực rỡ với Vườn quốc gia Tràm Chim.',
+    diemDen: 'Khu du lịch Xẻo Quýt, Vườn quốc gia Tràm Chim, Làng hoa Sa Đéc, Nhà cổ Huỳnh Thủy Lê.',
+    dacSan: 'Nem Lai Vung, Bánh ướt Sa Đéc, Hủ tiếu Sa Đéc, Các món ăn chế biến từ Sen.',
+    muaDep: 'Tháng 1 - Tháng 2 (Làng hoa Sa Đéc nở rực rỡ đón Tết).',
+    meo: 'Thưởng thức tô Hủ tiếu Sa Đéc nước dùng ngọt thanh đậm đà!'
+  },
+  'hậu giang': {
+    ten: 'Hậu Giang',
+    anh: ANH_MAC_DINH,
+    moTa: 'Vùng đất bình yên ven dòng sông Hậu hiền hòa.',
+    diemDen: 'Khu bảo tồn thiên nhiên Lung Ngọc Hoàng, Chợ nổi Ngã Bảy, Công viên Xà No.',
+    dacSan: 'Cá thát lát rút xương chiên giòn, Khóm Cầu Đúc, Bánh xèo củ hủ dừa.',
+    muaDep: 'Tháng 9 - Tháng 11 (Mùa nước nổi Lung Ngọc Hoàng xanh biếc).',
+    meo: 'Thưởng thức Chả cá thát lát dai giòn thơm ngon chuẩn vị!'
+  },
+  'kiên giang': {
+    ten: 'Kiên Giang - Phú Quốc',
+    anh: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800',
+    moTa: 'Thiên đường biển đảo Đảo Ngọc Phú Quốc và Quần đảo Nam Du.',
+    diemDen: 'Phú Quốc (Grand World, Bãi Sao, Cáp treo Hòn Thơm), Nam Du, Hà Tiên.',
+    dacSan: 'Bún quậy Kiến Xây, Gỏi cá trích, Nhum biển nướng, Nước mắm Phú Quốc.',
+    muaDep: 'Tháng 10 - Tháng 4 năm sau (Mùa khô biển trong ngọc bích).',
+    meo: 'Đón hoàng hôn lung linh tại Sunset Sanato Phú Quốc!'
+  },
+  'phú quốc': {
+    ten: 'Đảo Ngọc Phú Quốc (Kiên Giang)',
+    anh: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800',
+    moTa: 'Thiên đường nghỉ dưỡng biển xanh cát trắng mịn.',
+    diemDen: 'Grand World, VinWonders, Bãi Sao, Chợ đêm Phú Quốc.',
+    dacSan: 'Bún quậy tự pha, Gỏi cá trích, Hải sản tươi.',
+    muaDep: 'Tháng 10 - Tháng 4.',
+    meo: 'Tự tay pha chế nước chấm theo vị riêng khi ăn Bún quậy!'
+  },
+  'long an': {
+    ten: 'Long An',
+    anh: ANH_MAC_DINH,
+    moTa: 'Cửa ngõ kết nối TP.HCM với miền Tây sông nước dạt dào.',
+    diemDen: 'Làng nổi Tân Lập, Khu du lịch Cánh Đồng Bất Tận, Chùa Tôn Thạnh.',
+    dacSan: 'Lạp xưởng tươi Cần Đước, Rượu Gò Đen, Gạo tài nguyên, Thanh long.',
+    muaDep: 'Tháng 8 - Tháng 11 (Làng nổi Tân Lập rợp bóng rừng tràm).',
+    meo: 'Bắt chiếc xuồng ba lá xuôi dòng con đường xuyên rừng tràm Tân Lập!'
+  },
+  'sóc trăng': {
+    ten: 'Sóc Trăng',
+    anh: ANH_MAC_DINH,
+    moTa: 'Sự giao thoa văn hóa độc đáo Kinh - Hoa - Khmer với những ngôi chùa vàng.',
+    diemDen: 'Chùa Dơi, Chùa Som Rong, Chùa Chén Kiểu, Cồn Mỹ Phước.',
+    dacSan: 'Bánh pía Sóc Trăng, Bún nước lèo, Bánh cống, Bánh gừng.',
+    muaDep: 'Tháng 10 âm lịch (Lễ hội Oóc Om Bóc & Đua ghe Ngộ).',
+    meo: 'Thưởng thức chiếc Bánh pía sầu riêng trứng muối nóng hổi ngọt bùi!'
+  },
+  'tiền giang': {
+    ten: 'Tiền Giang',
+    anh: ANH_MAC_DINH,
+    moTa: 'Vùng đất cây trái xum xuê bên dòng sông Tiền hiền hòa.',
+    diemDen: 'Cù lao Thới Sơn, Chợ nổi Cái Bè, Chùa Vĩnh Tràng, Biển Tân Thành.',
+    dacSan: 'Hủ tiếu Mỹ Tho, Vú sữa Lò Rèn, Dứa Tân Phước, Mắm còng.',
+    muaDep: 'Tháng 6 - Tháng 8 (Mùa trái cây chín rộ ngọt mọng).',
+    meo: 'Thưởng thức tô Hủ tiếu Mỹ Tho tôm thịt ngọt thanh hấp dẫn!'
+  },
+  'trà vinh': {
+    ten: 'Trà Vinh',
+    anh: ANH_MAC_DINH,
+    moTa: 'Vùng đất rợp bóng cây cổ thụ nghìn năm và Chùa Khmer cổ kính.',
+    diemDen: 'Ao Bà Om, Chùa Hang, Chùa Âng, Biển Ba Động, Cù lao Long Trị.',
+    dacSan: 'Bún nước lèo Trà Vinh, Dừa sáp Cầu Kè, Bánh tét Trà Cuôn.',
+    muaDep: 'Tháng 10 âm lịch (Lễ hội Ok Om Bok rộn ràng).',
+    meo: 'Nhớ thử món Dừa sáp dầm đá đường béo ngậy khó cưỡng!'
+  },
+  'vĩnh long': {
+    ten: 'Vĩnh Long',
+    anh: ANH_MAC_DINH,
+    moTa: 'Mảnh đất sinh thái cù lao bạt ngàn vườn cây ăn trái.',
+    diemDen: 'Cù lao An Bình, Chùa Tiên Châu, Làng gạch Mang Thít, Nhà cổ Cai Cường.',
+    dacSan: 'Cá cháy sông Hậu, Bưởi năm roi Bình Minh, Tai tượng chiên xù.',
+    muaDep: 'Tháng 5 - Tháng 7 (Thỏa sức hái trái cây tại vườn cù lao).',
+    meo: 'Trải nghiệm làm nông dân bắt cá lóc nướng trui tại vườn!'
+  }
 };
 
-// 🌐 ROUTING SERVER EXPRESS
+// 🛠️ HÀM TẠO PAYLOAD RICH CARD DIALOGFLOW ES
+function taoResponseRichText(tinhData, subTopic = 'all') {
+  let subTitleText = '';
+
+  if (subTopic === 'dacSan') {
+    subTitleText = `🍲 ĐẶC SẢN PHẢI THỬ:\n${tinhData.dacSan}\n\n💡 Mẹo HDV: ${tinhData.meo}`;
+  } else if (subTopic === 'diemDen') {
+    subTitleText = `🏔️ ĐIỂM CHECK-IN NỔI BẬT:\n${tinhData.diemDen}\n\n☀️ Mùa đẹp: ${tinhData.muaDep}`;
+  } else if (subTopic === 'meo') {
+    subTitleText = `💡 BÍ KÍP HDV BẬT MÍ:\n${tinhData.meo}\n\n☀️ Mùa đẹp: ${tinhData.muaDep}`;
+  } else {
+    subTitleText = `${tinhData.moTa}\n\n🏔️ Điểm đến: ${tinhData.diemDen}\n🍲 Đặc sản: ${tinhData.dacSan}\n☀️ Mùa đẹp: ${tinhData.muaDep}`;
+  }
+
+  const titleHeader = `🎩 HDV DU LỊCH: ${tinhData.ten.toUpperCase()}`;
+
+  return {
+    fulfillmentText: `${titleHeader}\n\n${subTitleText}`,
+    fulfillmentMessages: [
+      {
+        card: {
+          title: titleHeader,
+          subtitle: subTitleText.length > 240 ? subTitleText.substring(0, 237) + '...' : subTitleText,
+          imageUri: tinhData.anh || ANH_MAC_DINH,
+          buttons: [
+            { text: '🏔️ Điểm Tham Quan', postback: `điểm chơi ${tinhData.ten}` },
+            { text: '🍲 Món Ngon Đặc Sản', postback: `ăn gì ${tinhData.ten}` },
+            { text: '💡 Mẹo HDV Bật Mí', postback: `mẹo ${tinhData.ten}` }
+          ]
+        }
+      }
+    ]
+  };
+}
+
+// 🌐 ROUTER EXPRESS WEBHOOK
 app.get('/', (req, res) => {
-  res.send('<h3>🎙️ Server Webhook Hướng Dẫn Viên Du Lịch 63 Tỉnh Thành đang hoạt động sẵn sàng!</h3>');
+  res.send('<h3>🎙️ Webhook Bot Du Lịch 63 Tỉnh Thành Việt Nam đang hoạt động sẵn sàng!</h3>');
 });
 
 app.post('/', (req, res) => {
   const queryResult = req.body.queryResult || {};
   const userQuery = (queryResult.queryText || '').toLowerCase().trim();
 
-  let replyText = '';
-  let found = false;
+  let subTopic = 'all';
+  if (userQuery.includes('ăn gì') || userQuery.includes('đặc sản') || userQuery.includes('món ngon')) {
+    subTopic = 'dacSan';
+  } else if (userQuery.includes('điểm') || userQuery.includes('chơi gì') || userQuery.includes('check-in')) {
+    subTopic = 'diemDen';
+  } else if (userQuery.includes('mẹo') || userQuery.includes('lời khuyên') || userQuery.includes('mùa đẹp')) {
+    subTopic = 'meo';
+  }
 
-  // 🔍 Lọc và tìm kiếm thông tin theo từ khóa tỉnh thành
-  for (const [tinh, thongTin] of Object.entries(duLieuCacTinh)) {
-    if (userQuery.includes(tinh)) {
-      replyText = thongTin;
-      found = true;
+  // Lọc từ khóa tỉnh thành
+  let tinhTimThay = null;
+  for (const key in duLieuCacTinh) {
+    if (userQuery.includes(key)) {
+      tinhTimThay = duLieuCacTinh[key];
       break;
     }
   }
 
-  // 🤖 Xử lý các tình huống câu hỏi chung nếu người dùng chưa nhập tên tỉnh
-  if (!found) {
-    if (userQuery.includes('ăn gì') || userQuery.includes('đặc sản')) {
-      replyText = '🎩 **Dạ em chào quý khách!** Quý khách đang muốn tìm hiểu ẩm thực & đặc sản của tỉnh thành nào ạ? (Ví dụ: Đặc sản Hà Nội, Đặc sản Huế, Ăn gì ở Đà Lạt, Đặc sản Tây Ninh...) Quý khách cứ nói tên địa danh em sẽ tư vấn ngay nhé!';
-    } else if (userQuery.includes('giá') || userQuery.includes('chi phí') || userQuery.includes('bao nhiêu')) {
-      replyText = `🎩 **Dạ, em HDV xin tư vấn mức chi phí du lịch tham khảo ạ**:
-
-💵 **Tour Tiết Kiệm (3N2Đ)**: ~ 2.000.000đ - 3.500.000đ/người (Khách sạn 2-3 sao, di chuyển xe khách/xe máy).
-💎 **Tour Nghỉ Dưỡng (3N2Đ)**: ~ 4.500.000đ - 8.000.000đ/người (Khách sạn/Resort 4-5 sao, máy bay).
-
-Quý khách muốn đi tỉnh nào em sẽ dự toán chi tiết hơn giúp mình nhé!`;
-    } else {
-      replyText = '🎩 **Dạ em chào quý khách! Em là Hướng dẫn viên du lịch cá nhân của mình đây ạ!** \n\nQuý khách muốn cùng em khám phá danh lam thắng cảnh, ẩm thực hay kinh nghiệm du lịch tại địa danh nào ạ? (Ví dụ: Hà Nội, Hà Giang, Hạ Long, Ninh Bình, Huế, Đà Nẵng, Hội An, Nha Trang, Đà Lạt, Sài Gòn, Vũng Tàu, Tây Ninh, Cần Thơ, Phú Quốc...)';
-    }
+  if (tinhTimThay) {
+    return res.json(taoResponseRichText(tinhTimThay, subTopic));
   }
 
-  return res.json({ fulfillmentText: replyText });
+  // Xử lý câu hỏi chi phí
+  if (userQuery.includes('chi phí') || userQuery.includes('giá') || userQuery.includes('bao nhiêu')) {
+    return res.json({
+      fulfillmentText: `🎩 **Dạ em HDV xin tư vấn mức chi phí du lịch tham khảo ạ**:
+
+💵 **Tour Tiết Kiệm (3N2Đ)**: ~ 2.000.000đ - 3.500.000đ/người.
+💎 **Tour Nghỉ Dưỡng (3N2Đ)**: ~ 4.500.000đ - 8.000.000đ/người.
+
+Quý khách muốn đi tỉnh thành nào cứ bảo tên tỉnh em sẽ tư vấn nhé!`
+    });
+  }
+
+  // Mặc định
+  return res.json({
+    fulfillmentText: `🎩 **Dạ em chào quý khách! Em là Hướng dẫn viên du lịch cá nhân 63 Tỉnh Thành đây ạ!**
+
+Quý khách muốn cùng em khám phá danh lam thắng cảnh, ẩm thực hay kinh nghiệm du lịch tại địa danh nào ạ? (Ví dụ: Hà Giang, Hà Nội, Hạ Long, Ninh Bình, Huế, Đà Nẵng, Hội An, Nha Trang, Đà Lạt, Sài Gòn, Vũng Tàu, Tây Ninh, Cần Thơ, Phú Quốc...)`
+  });
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`HDV Server listening on port ${PORT}`);
+  console.log(`Bot 63 tinh thanh running on port ${PORT}`);
 });
+
