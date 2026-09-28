@@ -1,13 +1,103 @@
+/**
+ * WEBHOOK DIALOGFLOW ES - CHÁT BOT DU LỊCH 63 TỈNH THÀNH VIỆT NAM (THÔNG MINH)
+ * 
+ * Tính năng tích hợp:
+ * 1. Phản hồi Thẻ tương tác (Rich Card) đẹp mắt kèm Hình ảnh & Nút bấm.
+ * 2. Hỗ trợ tra cứu Vùng miền (Bắc - Trung - Nam) & 63 Tỉnh Thành.
+ * 3. THUẬT TOÁN TÌM KIẾM MỜ (Fuzzy Matching): Tự sửa lỗi gõ sai chính tả / gõ không dấu.
+ * 4. BỘ NHỚ PHIÊN (Session Memory): Tích lũy lịch sử tra cứu của từng người dùng.
+ * 5. Bắt ngữ cảnh chuyên sâu (Ăn gì, Đi đâu, Mẹo du lịch, Chi phí).
+ */
+
 const express = require('express');
 const app = express();
+
 app.use(express.json());
 
-// 📸 Link ảnh mặc định chuẩn thiên nhiên Việt Nam
+// =========================================================================
+// 1. CẤU HÌNH & BỘ NHỚ LƯU TRỮ TRẠNG THÁI (SESSION MEMORY)
+// =========================================================================
 const ANH_MAC_DINH = 'https://images.unsplash.com/photo-1528127269322-539801943592?w=800';
 
-// 🎙️ KHO DỮ LIỆU ĐẦY ĐỦ 63 TỈNH THÀNH VIỆT NAM (CHUẨN RICH CARD)
+// Lưu trữ lịch sử & sở thích người dùng theo sessionId của Dialogflow
+const boNhoNguoiDung = new Map();
+
+// =========================================================================
+// 2. BỘ THUẬT TOÁN XỬ LÝ CHUỖI & TÌM KIẾM MỜ (FUZZY MATCHING)
+// =========================================================================
+
+/**
+ * Hàm loại bỏ dấu tiếng Việt để so sánh chuỗi không dấu
+ */
+function loaiBoDau(str) {
+  if (!str) return '';
+  return str
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd').replace(/Đ/g, 'D')
+    .toLowerCase()
+    .trim();
+}
+
+/**
+ * Thuật toán Dice's Coefficient: Tính độ tương đồng giữa 2 chuỗi (Trả về 0.0 -> 1.0)
+ * Giúp phát hiện từ gõ sai chính tả (VD: "dalat" -> "đà lạt", "ha gianng" -> "hà giang")
+ */
+function tinhDoTuongDong(str1, str2) {
+  const s1 = loaiBoDau(str1);
+  const s2 = loaiBoDau(str2);
+
+  if (s1 === s2) return 1.0;
+  if (s1.length < 2 || s2.length < 2) return 0.0;
+
+  const bigrams1 = new Map();
+  for (let i = 0; i < s1.length - 1; i++) {
+    const bigram = s1.substring(i, i + 2);
+    bigrams1.set(bigram, (bigrams1.get(bigram) || 0) + 1);
+  }
+
+  let intersectionSize = 0;
+  for (let i = 0; i < s2.length - 1; i++) {
+    const bigram = s2.substring(i, i + 2);
+    const count = bigrams1.get(bigram) || 0;
+    if (count > 0) {
+      bigrams1.set(bigram, count - 1);
+      intersectionSize++;
+    }
+  }
+
+  return (2.0 * intersectionSize) / (s1.length + s2.length - 2);
+}
+
+// =========================================================================
+// 3. KHO DỮ LIỆU CÁC VÙNG MIỀN
+// =========================================================================
+const danhSachMien = {
+  'miền bắc': {
+    ten: 'Miền Bắc',
+    anh: 'https://images.unsplash.com/photo-1528127269322-539801943592?w=800',
+    moTa: 'Hội tụ cảnh quan thiên nhiên hùng vĩ, núi cao trùng điệp và nền văn hóa nghìn năm văn hiến.',
+    tinhThanh: 'Hà Nội, Quảng Ninh, Lào Cai (Sa Pa), Hà Giang, Ninh Bình, Hải Phòng, Cao Bằng, Điện Biên, Mộc Châu...'
+  },
+  'miền trung': {
+    ten: 'Miền Trung & Tây Nguyên',
+    anh: 'https://images.unsplash.com/photo-1552353617-3bfd679b3bdd?w=800',
+    moTa: 'Nổi tiếng với con đường di sản văn hóa, bãi biển ngọc bích và không gian đại ngàn kỳ vĩ.',
+    tinhThanh: 'Thừa Thiên Huế, Đà Nẵng, Hội An, Quy Nhơn, Phú Yên, Nha Trang, Đà Lạt, Quảng Bình...'
+  },
+  'miền nam': {
+    ten: 'Miền Nam',
+    anh: 'https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=800',
+    moTa: 'Mảnh đất miền sông nước phù sa màu mỡ, nhịp sống sầm uất, hiện đại và con người mến khách.',
+    tinhThanh: 'TP.HCM, Vũng Tàu, Phú Quốc, Cần Thơ, Tây Ninh, An Giang, Bến Tre, Cà Mau...'
+  }
+};
+
+// =========================================================================
+// 4. KHO DỮ LIỆU 63 TỈNH THÀNH & ĐỊA DANH NỔI TIẾNG
+// =========================================================================
 const duLieuCacTinh = {
-  // ==================== I. MIỀN BẮC (25 TỈNH THÀNH) ====================
+  // -------------------- I. MIỀN BẮC --------------------
   'hà nội': {
     ten: 'Thủ đô Hà Nội',
     anh: 'https://images.unsplash.com/photo-1509030450996-93f2e3d84298?w=800',
@@ -22,7 +112,7 @@ const duLieuCacTinh = {
     anh: 'https://images.unsplash.com/photo-1552554948-261ef40d4240?w=800',
     moTa: 'Thành phố Hoa Phượng Đỏ sôi động với biển Cát Bà và Foodtour cực đỉnh.',
     diemDen: 'Quần đảo Cát Bà, Vịnh Lan Hạ, Đảo Hòn Dáu, Bãi biển Đồ Sơn.',
-    dacSan: 'Bánh đa cua, Bánh mì que, Dừa dầm, Bún cáเผ็ด, Cua bể.',
+    dacSan: 'Bánh đa cua, Bánh mì que, Dừa dầm, Bún cá cay, Cua bể.',
     muaDep: 'Tháng 4 - Tháng 10 (Thích hợp tắm biển & oanh tạc Foodtour).',
     meo: 'Thuê một chiếc xe máy làm một chuyến Foodtour quanh các khu chợ trung tâm!'
   },
@@ -252,7 +342,7 @@ const duLieuCacTinh = {
     meo: 'Nghỉ dưỡng Tam Đảo thưởng thức đĩa ngọn su su xào giòn ngọt!'
   },
 
-  // ==================== II. MIỀN TRUNG & TÂY NGUYÊN (19 TỈNH THÀNH) ====================
+  // -------------------- II. MIỀN TRUNG & TÂY NGUYÊN --------------------
   'thanh hóa': {
     ten: 'Thanh Hóa',
     anh: ANH_MAC_DINH,
@@ -290,7 +380,7 @@ const duLieuCacTinh = {
     meo: 'Thử chèo thuyền Kayak trên dòng Sông Chày xanh màu ngọc bích!'
   },
   'quảng trị': {
-    ten: 'Quảng trị',
+    ten: 'Quảng Trị',
     anh: ANH_MAC_DINH,
     moTa: 'Vùng đất thiêng anh hùng gắn liền với những chiến công lịch sử.',
     diemDen: 'Thành cổ Quảng Trị, Nghĩa trang Trường Sơn, Cầu Hiền Lương - Sông Bến Hải, Địa đạo Vịnh Mốc.',
@@ -461,7 +551,7 @@ const duLieuCacTinh = {
     meo: 'Thuê chiếc xe máy chạy quanh các con dốc ngắm hoàng hôn thung lũng!'
   },
 
-  // ==================== III. MIỀN NAM (19 TỈNH THÀNH) ====================
+  // -------------------- III. MIỀN NAM --------------------
   'tp.hồ chí minh': {
     ten: 'TP. Hồ Chí Minh (Sài Gòn)',
     anh: 'https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=800',
@@ -662,8 +752,14 @@ const duLieuCacTinh = {
   }
 };
 
-// 🛠️ HÀM TẠO PAYLOAD RICH CARD DIALOGFLOW ES
-function taoResponseRichText(tinhData, subTopic = 'all') {
+// =========================================================================
+// 5. BỘ HÀM TẠO PAYLOAD DIALOGFLOW ES (HELPER FUNCTIONS)
+// =========================================================================
+
+/**
+ * Tạo Thẻ tương tác cho một tỉnh thành cụ thể (Có gắn kèm thông tin lịch sử người dùng)
+ */
+function taoResponseRichText(tinhData, subTopic = 'all', userState = null) {
   let subTitleText = '';
 
   if (subTopic === 'dacSan') {
@@ -676,14 +772,19 @@ function taoResponseRichText(tinhData, subTopic = 'all') {
     subTitleText = `${tinhData.moTa}\n\n🏔️ Điểm đến: ${tinhData.diemDen}\n🍲 Đặc sản: ${tinhData.dacSan}\n☀️ Mùa đẹp: ${tinhData.muaDep}`;
   }
 
-  const titleHeader = `🎩 HDV DU LỊCH: ${tinhData.ten.toUpperCase()}`;
+  // TÍCH LŨY THÔNG MINH: Thêm dòng thông báo lịch sử đã xem nếu có
+  let fullFulfillmentText = `🎩 HDV DU LỊCH: ${tinhData.ten.toUpperCase()}\n\n${subTitleText}`;
+  if (userState && userState.lichSuXem.length > 1) {
+    const demLichSu = userState.lichSuXem.length;
+    fullFulfillmentText += `\n\n📌 (Bạn đã khám phá ${demLichSu} điểm đến trong phiên này)`;
+  }
 
   return {
-    fulfillmentText: `${titleHeader}\n\n${subTitleText}`,
+    fulfillmentText: fullFulfillmentText,
     fulfillmentMessages: [
       {
         card: {
-          title: titleHeader,
+          title: `🎩 HDV DU LỊCH: ${tinhData.ten.toUpperCase()}`,
           subtitle: subTitleText.length > 240 ? subTitleText.substring(0, 237) + '...' : subTitleText,
           imageUri: tinhData.anh || ANH_MAC_DINH,
           buttons: [
@@ -697,15 +798,99 @@ function taoResponseRichText(tinhData, subTopic = 'all') {
   };
 }
 
-// 🌐 ROUTER EXPRESS WEBHOOK
+/**
+ * Tạo Thẻ thông tin danh sách Vùng Miền
+ */
+function taoCardMien(dataMien) {
+  const titleText = `🗺️ KHÁM PHÁ ${dataMien.ten.toUpperCase()}`;
+  const subTitleText = `${dataMien.moTa}\n\n📍 Các tỉnh tiêu biểu: ${dataMien.tinhThanh}`;
+
+  return {
+    fulfillmentText: `${titleText}\n\n${subTitleText}\n\n💡 Gõ tên tỉnh bất kỳ (hoặc gõ không dấu/sai chính tả) em vẫn hiểu nhé!`,
+    fulfillmentMessages: [
+      {
+        card: {
+          title: titleText,
+          subtitle: subTitleText.length > 240 ? subTitleText.substring(0, 237) + '...' : subTitleText,
+          imageUri: dataMien.anh,
+          buttons: [
+            { text: "🌲 Chọn Miền Bắc", postback: "Miền Bắc" },
+            { text: "🌊 Chọn Miền Trung", postback: "Miền Trung" },
+            { text: "🌴 Chọn Miền Nam", postback: "Miền Nam" }
+          ]
+        }
+      }
+    ]
+  };
+}
+
+/**
+ * Tạo Thẻ Chào mặc định
+ */
+function taoWelcomeCard() {
+  return {
+    fulfillmentText: "🎩 **Dạ em chào quý khách! Em là Hướng dẫn viên du lịch cá nhân 63 Tỉnh Thành đây ạ!**\n\nQuý khách muốn cùng em khám phá du lịch tại miền nào?",
+    fulfillmentMessages: [
+      {
+        card: {
+          title: "🎩 HDV DU LỊCH 63 TỈNH THÀNH",
+          subtitle: "Vui lòng chọn vùng miền hoặc gõ tên Tỉnh/Thành bạn muốn tham quan khám phá:",
+          imageUri: "https://images.unsplash.com/photo-1528127269322-539801943592?w=800",
+          buttons: [
+            { text: "🌲 Khám Phá Miền Bắc", postback: "Miền Bắc" },
+            { text: "🌊 Khám Phá Miền Trung", postback: "Miền Trung" },
+            { text: "🌴 Khám Phá Miền Nam", postback: "Miền Nam" }
+          ]
+        }
+      }
+    ]
+  };
+}
+
+// =========================================================================
+// 6. ROUTING KHỞI TẠO VÀ XỬ LÝ WEBHOOK
+// =========================================================================
+
 app.get('/', (req, res) => {
-  res.send('<h3>🎙️ Webhook Bot Du Lịch 63 Tỉnh Thành Việt Nam đang hoạt động sẵn sàng!</h3>');
+  res.send('<h3>🎙️ Webhook Bot Du Lịch 63 Tỉnh Thành (Tích hợp Fuzzy Matching & Session Memory) đang hoạt động!</h3>');
 });
 
 app.post('/', (req, res) => {
   const queryResult = req.body.queryResult || {};
   const userQuery = (queryResult.queryText || '').toLowerCase().trim();
 
+  // -----------------------------------------------------------------------
+  // BƯỚC 1: KHỞI TẠO HOẶC LẤY BỘ NHỚ PHIÊN CHAT (SESSION STATE)
+  // -----------------------------------------------------------------------
+  const sessionId = req.body.session || 'default_session';
+  if (!boNhoNguoiDung.has(sessionId)) {
+    boNhoNguoiDung.set(sessionId, {
+      lichSuXem: [],
+      mienQuanTam: null,
+      thoiGianBatDau: new Date()
+    });
+  }
+  const userState = boNhoNguoiDung.get(sessionId);
+
+  // -----------------------------------------------------------------------
+  // BƯỚC 2: XỬ LÝ LỌC THEO VÙNG MIỀN
+  // -----------------------------------------------------------------------
+  if (userQuery.includes('miền bắc') || userQuery.includes('mien bac')) {
+    userState.mienQuanTam = 'Miền Bắc';
+    return res.json(taoCardMien(danhSachMien['miền bắc']));
+  }
+  if (userQuery.includes('miền trung') || userQuery.includes('mien trung')) {
+    userState.mienQuanTam = 'Miền Trung';
+    return res.json(taoCardMien(danhSachMien['miền trung']));
+  }
+  if (userQuery.includes('miền nam') || userQuery.includes('mien nam')) {
+    userState.mienQuanTam = 'Miền Nam';
+    return res.json(taoCardMien(danhSachMien['miền nam']));
+  }
+
+  // -----------------------------------------------------------------------
+  // BƯỚC 3: XỬ LÝ PHÂN TÍCH NGỮ CẢNH CHUYÊN SÂU
+  // -----------------------------------------------------------------------
   let subTopic = 'all';
   if (userQuery.includes('ăn gì') || userQuery.includes('đặc sản') || userQuery.includes('món ngon')) {
     subTopic = 'dacSan';
@@ -715,20 +900,60 @@ app.post('/', (req, res) => {
     subTopic = 'meo';
   }
 
-  // Lọc từ khóa tỉnh thành
+  // -----------------------------------------------------------------------
+  // BƯỚC 4: TÌM KIẾM TỈNH THÀNH BẰNG THUẬT TOÁN KẾT HỢP (EXACT + FUZZY MATCHING)
+  // -----------------------------------------------------------------------
   let tinhTimThay = null;
+  let doThichHopCaoNhat = 0;
+  const câuHỏiKhongDau = loaiBoDau(userQuery);
+
+  // 1. Quét tìm chính xác từ khóa / chuỗi con
   for (const key in duLieuCacTinh) {
-    if (userQuery.includes(key)) {
+    const tenTinhKhongDau = loaiBoDau(key);
+    if (câuHỏiKhongDau.includes(tenTinhKhongDau)) {
       tinhTimThay = duLieuCacTinh[key];
       break;
     }
   }
 
-  if (tinhTimThay) {
-    return res.json(taoResponseRichText(tinhTimThay, subTopic));
+  // 2. Nếu gõ sai hoặc không khớp từ khóa -> Chạy Thuật toán Fuzzy Matching
+  if (!tinhTimThay) {
+    const cacTu = câuHỏiKhongDau.split(' ');
+    
+    for (const key in duLieuCacTinh) {
+      const tenTinhKhongDau = loaiBoDau(key);
+      
+      // So sánh nguyên câu hỏi với tên tỉnh
+      const scoreFull = tinhDoTuongDong(câuHỏiKhongDau, tenTinhKhongDau);
+      if (scoreFull > doThichHopCaoNhat && scoreFull >= 0.55) {
+        doThichHopCaoNhat = scoreFull;
+        tinhTimThay = duLieuCacTinh[key];
+      }
+
+      // So sánh từng từ trong câu hỏi với tên tỉnh
+      for (const tu of cacTu) {
+        if (tu.length >= 3) {
+          const scoreWord = tinhDoTuongDong(tu, tenTinhKhongDau);
+          if (scoreWord > doThichHopCaoNhat && scoreWord >= 0.65) {
+            doThichHopCaoNhat = scoreWord;
+            tinhTimThay = duLieuCacTinh[key];
+          }
+        }
+      }
+    }
   }
 
-  // Xử lý câu hỏi chi phí
+  // Bắt được tỉnh thành -> Trả về kết quả & Tích lũy bộ nhớ
+  if (tinhTimThay) {
+    if (!userState.lichSuXem.includes(tinhTimThay.ten)) {
+      userState.lichSuXem.push(tinhTimThay.ten);
+    }
+    return res.json(taoResponseRichText(tinhTimThay, subTopic, userState));
+  }
+
+  // -----------------------------------------------------------------------
+  // BƯỚC 5: XỬ LÝ CÂU HỎI VỀ CHI PHÍ
+  // -----------------------------------------------------------------------
   if (userQuery.includes('chi phí') || userQuery.includes('giá') || userQuery.includes('bao nhiêu')) {
     return res.json({
       fulfillmentText: `🎩 **Dạ em HDV xin tư vấn mức chi phí du lịch tham khảo ạ**:
@@ -736,20 +961,19 @@ app.post('/', (req, res) => {
 💵 **Tour Tiết Kiệm (3N2Đ)**: ~ 2.000.000đ - 3.500.000đ/người.
 💎 **Tour Nghỉ Dưỡng (3N2Đ)**: ~ 4.500.000đ - 8.000.000đ/người.
 
-Quý khách muốn đi tỉnh thành nào cứ bảo tên tỉnh em sẽ tư vấn nhé!`
+Quý khách muốn đi tỉnh thành nào cứ gõ tên tỉnh em sẽ tư vấn chi tiết nhé!`
     });
   }
 
-  // Mặc định
-  return res.json({
-    fulfillmentText: `🎩 **Dạ em chào quý khách! Em là Hướng dẫn viên du lịch cá nhân 63 Tỉnh Thành đây ạ!**
-
-Quý khách muốn cùng em khám phá danh lam thắng cảnh, ẩm thực hay kinh nghiệm du lịch tại địa danh nào ạ? (Ví dụ: Hà Giang, Hà Nội, Hạ Long, Ninh Bình, Huế, Đà Nẵng, Hội An, Nha Trang, Đà Lạt, Sài Gòn, Vũng Tàu, Tây Ninh, Cần Thơ, Phú Quốc...)`
-  });
+  // -----------------------------------------------------------------------
+  // BƯỚC 6: FALLBACK MẶC ĐỊNH (WELCOME)
+  // -----------------------------------------------------------------------
+  return res.json(taoWelcomeCard());
 });
 
+// Khởi chạy Server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Bot 63 tinh thanh running on port ${PORT}`);
+  console.log(`[SERVER] Bot Du Lich 63 Tinh Thanh (Smart AI Engine) running on port ${PORT}`);
 });
 
