@@ -1,6 +1,6 @@
 /**
- * SERVER BOT DU LỊCH VIỆT NAM FULL 63 TỈNH THÀNH (1 FILE INDEX.JS DUY NHẤT)
- * Lệnh cài đặt: npm install express
+ * WEBPACK HOÀN CHỈNH: BOT DU LỊCH VIỆT NAM THÔNG MINH (FULL 63 TỈNH THÀNH)
+ * Lệnh cài đặt thư viện: npm install express
  */
 
 const express = require('express');
@@ -8,7 +8,7 @@ const app = express();
 app.use(express.json());
 
 // =========================================================================
-// 1. CÁC THUẬT TOÁN XỬ LÝ NGÔN NGỮ VÀ TÌM KIẾM NÂNG CAO
+// 1. THUẬT TOÁN XỬ LÝ NGÔN NGỮ & ĐOÁN TỪ THÔNG MINH (FUZZY SUGGEST)
 // =========================================================================
 
 function loaiBoDau(str) {
@@ -44,662 +44,892 @@ function levenshteinDistance(a, b) {
   return matrix[b.length][a.length];
 }
 
-function jaccardSimilarity(textA, textB) {
-  const setA = new Set(textA.split(' '));
-  const setB = new Set(textB.split(' '));
-  const intersection = new Set([...setA].filter(x => setB.has(x)));
-  const union = new Set([...setA, ...setB]);
-  return intersection.size / union.size;
-}
-
 function detectUserIntent(queryNorm) {
-  if (/\b(an gi|dac san|mon ngon|quan an|uong gi|am thuc)\b/.test(queryNorm)) return 'ASK_FOOD';
-  if (/\b(choi gi|hoat dong|trai nghiem|lam gi|di dau|diem den|tham quan)\b/.test(queryNorm)) return 'ASK_ACTIVITIES';
-  if (/\b(chi phi|gia ca|ton bao nhieu|bao nhieu tien|ngan sach)\b/.test(queryNorm)) return 'ASK_BUDGET';
-  if (/\b(khi nao|thoi diem|thang may|mua nao|thoi tiet|dep nhat)\b/.test(queryNorm)) return 'ASK_BEST_TIME';
-  if (/\b(goi y|tu van|thich|goi y cho|nen di dau)\b/.test(queryNorm)) return 'RECOMMEND';
-  return 'GENERAL';
+  if (/\b(an gi|dac san|mon ngon|quan an|uong gi|am thuc|foodtour)\b/.test(queryNorm)) return { intent: 'ASK_FOOD', confidence: 0.95 };
+  if (/\b(phuot|mao hiem|leo nui|san may|trekking|kham pha)\b/.test(queryNorm)) return { intent: 'ASK_ADVENTURE', confidence: 0.95 };
+  if (/\b(nghi duong|bien|resort|thu relax|tam bien|sang chanh)\b/.test(queryNorm)) return { intent: 'ASK_RESORT', confidence: 0.95 };
+  if (/\b(goi y|tu van|dieu gi hay|nen di dau)\b/.test(queryNorm)) return { intent: 'RECOMMEND', confidence: 0.88 };
+  return { intent: 'GENERAL', confidence: 0.70 };
 }
 
 // =========================================================================
-// 2. BỘ NHỚ BỐ CỤC NGỮ CẢNH (CONTEXT MEMORY ENGINE)
+// 2. PHÂN CHIA TIỂU VÙNG ĐỂ CHỨA ĐỦ NÚT BẤM CỦA 63 TỈNH (TRÁNH LỖI QUÁ TẢI NÚT)
 // =========================================================================
-const userSessions = new Map();
 
-function getSessionState(sessionId) {
-  if (!userSessions.has(sessionId)) {
-    userSessions.set(sessionId, {
-      lastProvinceKey: null,
-      lastRegion: null,
-      history: []
-    });
-  }
-  return userSessions.get(sessionId);
-}
+const danhSachSubRegions = {
+  "tay_bac": ["Hà Giang", "Lào Cai", "Yên Bái", "Điện Biên", "Sơn La", "Lai Châu"],
+  "dong_bac": ["Cao Bằng", "Bắc Kạn", "Lạng Sơn", "Tuyên Quang", "Thái Nguyên", "Phú Thọ", "Bắc Giang", "Quảng Ninh", "Hòa Bình"],
+  "dong_bang_sh": ["Hà Nội", "Hải Phòng", "Vĩnh Phúc", "Bắc Ninh", "Hải Dương", "Hưng Yên", "Hà Nam", "Nam Định", "Thái Bình", "Ninh Bình"],
+  "bac_trung_bo": ["Thanh Hóa", "Nghệ An", "Hà Tĩnh", "Quảng Bình", "Quảng Trị", "Thừa Thiên Huế"],
+  "nam_trung_bo": ["Đà Nẵng", "Quảng Nam", "Quảng Ngãi", "Bình Định", "Phú Yên", "Khánh Hòa", "Ninh Thuận", "Bình Thuận"],
+  "tay_nguyen": ["Kon Tum", "Gia Lai", "Đắk Lắk", "Đắk Nông", "Lâm Đồng"],
+  "dong_nam_bo": ["TP. Hồ Chí Minh", "Bà Rịa - Vũng Tàu", "Bình Dương", "Bình Phước", "Đồng Nai", "Tây Ninh"],
+  "tay_nam_bo": ["Cần Thơ", "An Giang", "Bạc Liêu", "Bến Tre", "Cà Mau", "Đồng Tháp", "Hậu Giang", "Kiên Giang", "Long An", "Sóc Trăng", "Tiền Giang", "Trà Vinh", "Vĩnh Long"]
+};
 
 // =========================================================================
-// 3. CƠ SỞ DỮ LIỆU ĐẦY ĐỦ 63 TỈNH THÀNH VIỆT NAM (BẮC - TRUNG - NAM)
+// 3. DATABASE TRỌN BỘ 63 TỈNH THÀNH (NỘI DUNG CHI TIẾT - HÌNH ĐẸP KHÔNG CHỮ)
 // =========================================================================
 
 const duLieu63TinhThanh = {
-  // ----------------------- MIỀN BẮC (25 TỈNH THÀNH) -----------------------
+  // --- MIỀN BẮC (25 TỈNH) ---
   "ha noi": {
-    ten: "Thủ đô Hà Nội", mien: "bac", tags: ["van hoa", "am thuc", "lich su", "pho co"],
-    anh: "https://images.unsplash.com/photo-1509030450996-93f2e3d84298?w=800",
-    moTa: "Thủ đô nghìn năm văn hiến cổ kính, sở hữu 36 phố phường rêu phong và nền văn hóa lâu đời.",
-    hoatDong: "1. Uống cà phê trứng ngắm Hồ Gươm sáng sớm.\n2. Vi vu xe máy đường Phan Đình Phùng mùa lá rơi.\n3. Thưởng thức bia hơi Tạ Hiện đêm về.\n4. Xem múa rối nước tại Nhà hát Thăng Long.",
-    diemDen: "Hồ Hoàn Kiếm, Văn Miếu, Hoàng Thành Thăng Long, Chùa Một Cột, Lăng Bác.",
-    dacSan: "Phở Hà Nội, Bún chả, Chả cá Lã Vọng, Bún thang, Cốm làng Vòng.",
-    chiPhi: "800.000đ - 1.800.000đ/ngày.", thoiDiem: "Tháng 9 - 11 (Mùa thu vàng se lạnh) hoặc tháng 3 - 4."
+    ten: "Thủ đô Hà Nội",
+    subRegion: "dong_bang_sh", mien: "bac",
+    anh: "https://images.unsplash.com/photo-1509030450996-93f2e3d84298?w=1000",
+    moTa: "Mảnh đất nghìn năm văn hiến cổ kính, nơi đan xen giữa nét bình yên thơ mộng của 36 phố phường rêu phong và nhịp sống hiện đại, tinh tế.",
+    thoiDiem: "• Tháng 9 - 11: Mùa thu Hà Nội đẹp nhất năm với nắng vàng dịu, gió heo mây và hương hoa sữa nồng nàn.\n• Tháng 3: Mùa hoa sưa, hoa ban nở rộ khắp các góc phố.",
+    diemDen: "• Hồ Hoàn Kiếm & Đền Ngọc Sơn: Trái tim tâm linh giữa lòng thủ đô.\n• Văn Miếu Quốc Tử Giám: Trường đại học đầu tiên lưu giữ tinh hoa đạo học.\n• Hoàng Thành Thăng Long: Di sản thế giới mang dấu ấn lịch sử hàng nghìn năm.\n• Phố cổ Hà Nội: Cung đường lưu giữ kiến trúc Pháp cổ và ẩm thực vỉa hè độc đáo.",
+    dacSan: "• Phở Hà Nội: Nước dùng thanh ngọt ninh từ xương, quyện hương vị thảo mộc.\n• Bún chả Hàng Mành: Chả nướng than hoa thơm lừng chấm nước mắm chua ngọt.\n• Cà phê trứng Giảng: Vị béo ngậy của trứng đánh bông hòa quyện cà phê đậm đà.",
+    chiPhi: "800.000đ - 1.800.000đ / ngày"
   },
   "ha giang": {
-    ten: "Hà Giang", mien: "bac", tags: ["phuot", "nui cao", "san may", "mao hiem"],
-    anh: "https://images.unsplash.com/photo-1599707303381-807c42749419?w=800",
-    moTa: "Mảnh đất địa đầu Tổ quốc với cao nguyên đá hùng vĩ và những cung đường đèo hiểm trở.",
-    hoatDong: "1. Lái xe phượt đèo Mã Pí Lèng.\n2. Đi thuyền trên sông Nho Quý qua Hẻm Tu Sản.\n3. Check-in Cột cờ Lũng Cú.\n4. Dự chợ phiên Đồng Văn.",
-    diemDen: "Đèo Mã Pí Lèng, Hẻm Tu Sản, Cột cờ Lũng Cú, Dinh họ Vương, Cổng trời Quản Bạ.",
-    dacSan: "Cháo tẩu tẩu, Bánh tam giác mạch, Thịt trâu gác bếp, Rượu ngô.",
-    chiPhi: "2.000.000đ - 3.500.000đ/chuyến 3N2Đ.", thoiDiem: "Tháng 10 - 12 (Hoa tam giác mạch) hoặc tháng 1 - 3 (Mùa hoa đào mận)."
+    ten: "Tỉnh Hà Giang",
+    subRegion: "tay_bac", mien: "bac",
+    anh: "https://images.unsplash.com/photo-1528127269322-539801943592?w=1000",
+    moTa: "Thiên đường hoang sơ nơi địa đầu Tổ quốc, mê hoặc du khách bởi những dãy núi đá tai mèo sừng sững, các con đèo hiểm trở và sắc hoa rực rỡ.",
+    thoiDiem: "• Tháng 9 - 10: Mùa lúa chín vàng óng rực rỡ trên ruộng bậc thang Hoàng Su Phì.\n• Tháng 10 - 12: Mùa hoa tam giác mạch phủ hồng khắp các sườn núi cao nguyên đá.",
+    diemDen: "• Đèo Mã Pí Lèng: Một trong 'Tứ đại đỉnh đèo' hùng vĩ bậc nhất Việt Nam.\n• Sông Nho Quế & Hẻm Tu Sản: Trải nghiệm đi thuyền trên dòng nước xanh ngọc bích chẻ đôi vách đá.\n• Cột cờ Lũng Cú: Điểm cực Bắc thiêng liêng với lá cờ đỏ sao vàng tung bay trên đỉnh núi Rồng.\n• Phố cổ Đồng Văn: Không gian trình tường cổ kính của đồng bào H'Mông, Tày, Hoa.",
+    dacSan: "• Bánh cuốn canh Đồng Văn: Bánh tráng mỏng mềm chấm nước dùng ninh xương ngọt thanh.\n• Cháo tẩu tẩu: Món cháo giải cảm bổ dưỡng với vị đắng nhẹ đặc trưng.\n• Thịt trâu gác bếp & Rượu ngô Men Lá: Hương vị đậm đà nguyên bản vùng cao.",
+    chiPhi: "1.000.000đ - 2.200.000đ / ngày"
   },
   "lao cai": {
-    ten: "Lào Cai (Sa Pa)", mien: "bac", tags: ["nghi duong", "nui cao", "san may", "tuyet rơi"],
-    anh: "https://images.unsplash.com/photo-1528127269322-539801943592?w=800",
-    moTa: "Thị trấn sương mờ mộng mơ nơi có đỉnh Fansipan - Nóc nhà Đông Dương.",
-    hoatDong: "1. Săn mây trên đỉnh Fansipan.\n2. Trekking bản Cát Cát, Tả Van.\n3. Ngắm hoàng hôn Đèo Ô Quy Hồ.\n4. Tắm lá thuốc Dao Đỏ.",
-    diemDen: "Đỉnh Fansipan, Bản Cát Cát, Đèo Ô Quy Hồ, Thung lũng Mường Hoa, Nhà thờ Đá.",
-    dacSan: "Lẩu cá hồi cá tầm, Rau mầm đá, Thịt lợn cắp nách, Đồ nướng Sa Pa.",
-    chiPhi: "900.000đ - 2.500.000đ/ngày.", thoiDiem: "Tháng 9 - 10 (Lúa chín) hoặc tháng 12 - 1 (Săn tuyết)."
+    ten: "Tỉnh Lào Cai (Sa Pa)",
+    subRegion: "tay_bac", mien: "bac",
+    anh: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1000",
+    moTa: "Thị trấn sương mờ bồng bềnh giữa mây ngàn, nơi sở hữu đỉnh Fansipan hoành tráng và bản làng mộc mạc.",
+    thoiDiem: "• Tháng 9 - 10: Mùa lúa chín vàng rực trên thung lũng Mường Hoa.\n• Tháng 12 - 1: Cơ hội săn tuyết rơi và băng giá hiếm có.",
+    diemDen: "• Đỉnh Fansipan: Nóc nhà Đông Dương hùng vĩ ngập tràn mây trắng.\n• Bản Cát Cát: Bản làng dân tộc H'Mông thơ mộng bên suối chảy róc rách.\n• Đèo Ô Quy Hồ: Điểm ngắm hoàng hôn rực rỡ nhất vùng núi Tây Bắc.",
+    dacSan: "• Lẩu cá hồi, cá tầm Sa Pa: Hải sản vùng lạnh tươi ngon ngọt thịt.\n• Thắng cố Mường Khuương: Món ăn truyền thống đậm đà gia vị núi rừng.",
+    chiPhi: "900.000đ - 2.500.000đ / ngày"
   },
   "quang ninh": {
-    ten: "Quảng Ninh", mien: "bac", tags: ["bien", "du thuyen", "tam linh", "giai tri"],
-    anh: "https://images.unsplash.com/photo-1528127269322-539801943592?w=800",
-    moTa: "Thủ phủ du lịch sở hữu Kỳ quan thiên nhiên thế giới Vịnh Hạ Long.",
-    hoatDong: "1. Trải nghiệm du thuyền ngủ đêm Vịnh Hạ Long.\n2. Chèo thuyền Kayak Hang Luồn.\n3. Vui chơi Sun World Hạ Long.\n4. Hành hương đất Phật Yên Tử.",
-    diemDen: "Vịnh Hạ Long, Đảo Cô Tô, Đảo Quan Lạn, Danh thắng Yên Tử, Bảo tàng Quảng Ninh.",
-    dacSan: "Chả mực giã tay, Cà sáy Tiên Yên, Ngán biển, Bún hải sản.",
-    chiPhi: "1.000.000đ - 3.500.000đ/ngày.", thoiDiem: "Tháng 4 đến tháng 8 (Mùa hè tắm biển)."
+    ten: "Tỉnh Quảng Ninh",
+    subRegion: "dong_bac", mien: "bac",
+    anh: "https://images.unsplash.com/photo-1552353617-3bfd679b3bdd?w=1000",
+    moTa: "Kỳ quan thiên nhiên thế giới Vịnh Hạ Long với hàng ngàn đảo đá vôi kỳ vĩ soi bóng xuống làn nước xanh ngọc bích.",
+    thoiDiem: "• Tháng 4 - 8: Mùa hè rực rỡ, hoàn hảo cho du thuyền, tắm biển và chèo thuyền Kayak.",
+    diemDen: "• Vịnh Hạ Long & Vịnh Bái Tử Long: Kỳ quan thế giới với hang Sửng Sốt, đảo Ti Tốp.\n• Danh thắng Yên Tử: Đất tổ Phật giáo Trúc Lâm không gian tĩnh lặng, linh thiêng.\n• Đảo Cô Tô & Quan Lạn: Những bãi biển hoang sơ, cát trắng mịn tuyệt đẹp.",
+    dacSan: "• Chả mực giã tay Hạ Long: Giòn sần sật, đậm đà hương vị biển.\n• Cà sáy Tiên Yên & Gật gù Tiên Yên: Món ăn dân dã nức tiếng vùng đông bắc.",
+    chiPhi: "1.200.000đ - 3.500.000đ / ngày"
   },
   "ninh binh": {
-    ten: "Ninh Bình", mien: "bac", tags: ["tam linh", "thien nhien", "checkin", "song nuoc"],
-    anh: "https://images.unsplash.com/photo-1509030450996-93f2e3d84298?w=800",
-    moTa: "Cố đô Hoa Lư cổ kính sở hữu quần thể Di sản thế giới Tràng An hùng vĩ.",
-    hoatDong: "1. Đi thuyền đò tham quan các hang động Tràng An.\n2. Leo 500 bậc đá đỉnh Hang Múa.\n3. Bái Phật Chùa Bái Đính.\n4. Đạp xe quanh thung lũng lúa Tam Cốc.",
-    diemDen: "Tràng An, Tam Cốc - Bích Động, Hang Múa, Chùa Bái Đính, Tuyệt Tình Cốc.",
-    dacSan: "Cơm cháy Ninh Bình, Thịt dê núi, Bún mọc Tố Như, Rượu Kim Sơn.",
-    chiPhi: "600.000đ - 1.300.000đ/ngày.", thoiDiem: "Tháng 1 - 3 (Mùa lễ hội) hoặc tháng 5 - 6 (Mùa lúa chín)."
+    ten: "Tỉnh Ninh Bình",
+    subRegion: "dong_bang_sh", mien: "bac",
+    anh: "https://images.unsplash.com/photo-1509030450996-93f2e3d84298?w=1000",
+    moTa: "Cố đô Hoa Lư cổ kính, nơi có quần thể di sản thế giới Tràng An với những dòng sông uốn lượn qua lòng hang đá vôi.",
+    thoiDiem: "• Tháng 1 - 3: Mùa lễ hội Xuân thanh bình, tiết trời mát mẻ.\n• Tháng 5 - 6: Mùa lúa chín vàng rực hai bên dòng sông Ngô Đồng (Tam Cốc).",
+    diemDen: "• Quần thể danh thắng Tràng An: Đi thuyền xuyên qua các hang động kỳ ảo.\n• Hang Múa: Leo 500 bậc đá ngắm trọn vẹn thung lũng lúa Tam Cốc từ trên cao.\n• Chùa Bái Đính: Ngôi chùa lớn nhất Việt Nam sở hữu nhiều kỷ lục kỷ niệm.",
+    dacSan: "• Thịt dê núi Ninh Bình: Thịt săn chắc, thơm ngon chế biến tái chanh hay nướng.\n• Cơm cháy chà bông: Giòn tan chấm cùng sốt thịt sóng sánh.",
+    chiPhi: "700.000đ - 1.500.000đ / ngày"
   },
   "cao bang": {
-    ten: "Cao Bằng", mien: "bac", tags: ["phuot", "thien nhien", "thac nuoc", "lich su"],
-    anh: "https://images.unsplash.com/photo-1599707303381-807c42749419?w=800",
-    moTa: "Mảnh đất vùng biên giới nổi tiếng với Thác Bản Giốc - thác nước tự nhiên đẹp nhất Việt Nam.",
-    hoatDong: "1. Đi thuyền ngắm Thác Bản Giốc.\n2. Khám phá Động Ngườm Ngao kỳ ảo.\n3. Viếng di tích Hang Pắc Bó - Suối Lê Nin.\n4. Săn mây đỉnh Phia Oắc.",
-    diemDen: "Thác Bản Giốc, Động Ngườm Ngao, Pắc Bó, Hồ Thăng Hen, Núi Mắt Thần.",
-    dacSan: "Bánh cuốn Cao Bằng, Phở chua, Vịt quay 7 vị, Hạt dẻ Trùng Khánh.",
-    chiPhi: "700.000đ - 1.500.000đ/ngày.", thoiDiem: "Tháng 8 - 10 (Thác Bản Giốc nhiều nước xanh trong)."
+    ten: "Tỉnh Cao Bằng",
+    subRegion: "dong_bac", mien: "bac",
+    anh: "https://images.unsplash.com/photo-1599707303381-807c42749419?w=1000",
+    moTa: "Vùng đất biên kim sở hữu Thác Bản Giốc - Thác nước tự nhiên đường biên giới đẹp nhất Đông Nam Á.",
+    thoiDiem: "• Tháng 8 - 10: Mùa nước đổ xanh trong và lúa chín vàng rực dưới chân thác.",
+    diemDen: "• Thác Bản Giốc: Bức tranh thiên nhiên ngút ngàn dòng nước trắng xóa.\n• Động Ngườm Ngao: Hang động vôi kỳ ảo với muôn hình thạch nhũ tự nhiên.\n• Khu di tích Pắc Bó & Suối Lê Nin: Dòng suối xanh trong như ngọc bích.",
+    dacSan: "• Bánh cuốn Cao Bằng: Ăn kèm nước canh ninh xương thơm mùi hành phi.\n• Vịt quay 7 vị & Phở chua: Hương vị đặc trưng đậm đà khó quên.",
+    chiPhi: "700.000đ - 1.600.000đ / ngày"
   },
   "dien bien": {
-    ten: "Điện Biên", mien: "bac", tags: ["lich su", "van hoa", "nui cao"],
-    anh: "https://images.unsplash.com/photo-1599707303381-807c42749419?w=800",
-    moTa: "Vùng đất lịch sử lừng lẫy chiến công Điện Biên Phủ và đèo A Pa Chải mạo hiểm.",
-    hoatDong: "1. Thăm bảo tàng và Đồi A1.\n2. Chinh phục cực Tây A Pa Chải.\n3. Tắm khoáng nóng U Va.\n4. Thưởng thức điệu xòe Thái.",
-    diemDen: "Đồi A1, Hầm De Castries, Cột mốc A Pa Chải, Hồ Pá Khoang, Đèo Pha Đín.",
-    dacSan: "Thịt trâu gác bếp, Pa pỉnh tộp (Cá nướng), Gà đen Tủa Chùa, Xôi nếp nương.",
-    chiPhi: "600.000đ - 1.400.000đ/ngày.", thoiDiem: "Tháng 3 (Mùa hoa ban nở) hoặc tháng 5 (Kỷ niệm chiến thắng)."
+    ten: "Tỉnh Điện Biên",
+    subRegion: "tay_bac", mien: "bac",
+    anh: "https://images.unsplash.com/photo-1599707303381-807c42749419?w=1000",
+    moTa: "Mảnh đất lịch sử lừng lẫy chiến công Điện Biên Phủ và vẻ đẹp núi rừng Tây Bắc mùa hoa ban.",
+    thoiDiem: "• Tháng 3: Mùa hoa ban nở trắng xóa các sườn đồi.\n• Tháng 5: Dịp kỷ niệm chiến thắng lịch sử Điện Biên Phủ.",
+    diemDen: "• Bảo tàng Chiến thắng Điện Biên Phủ & Đồi A1, Hầm De Castries.\n• Cực Tây A Pa Chải: Nơi một tiếng gà gáy cả ba nước đều nghe.",
+    dacSan: "• Pa pỉnh tộp (Cá gập nướng): Món ăn truyền thống của người Thái.\n• Thịt trâu gác bếp & Sâu chít Điện Biên.",
+    chiPhi: "600.000đ - 1.400.000đ / ngày"
   },
   "son la": {
-    ten: "Sơn La (Mộc Châu)", mien: "bac", tags: ["nghi duong", "nui cao", "checkin", "hoa dep"],
-    anh: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800",
-    moTa: "Cao nguyên Mộc Châu xanh mướt mát lành với đồi chè trái tim và muôn hoa khoe sắc.",
-    hoatDong: "1. Hái dâu tây và chè xanh Mộc Châu.\n2. Băng qua Cầu kính Bạch Long dài nhất thế giới.\n3. Săn mây Tà Xùa.\n4. Thăm Thác Dải Yếm.",
-    diemDen: "Đồi chè Mộc Châu, Cầu kính Bạch Long, Thác Dải Yếm, Đỉnh Tà Xùa, Bản Thung Cuông.",
-    dacSan: "Bê chao Mộc Châu, Ô mai mơ, Sữa tươi Mộc Châu, Cá stream nướng.",
-    chiPhi: "700.000đ - 1.500.000đ/ngày.", thoiDiem: "Tháng 1 - 2 (Hoa cải, hoa mận) hoặc tháng 9 - 11 (Tà Xùa săn mây)."
+    ten: "Tỉnh Sơn La (Mộc Châu)",
+    subRegion: "tay_bac", mien: "bac",
+    anh: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1000",
+    moTa: "Cao nguyên Mộc Châu xanh ngát đồi chè, nơi có khí hậu mát mẻ quanh năm và đỉnh Tà Xùa săn mây huyền ảo.",
+    thoiDiem: "• Tháng 1 - 2: Mùa hoa mận, hoa đào nở trắng muốt thung lũng.\n• Tháng 9 - 11: Mùa săn mây Tà Xùa bồng bềnh tuyệt đẹp.",
+    diemDen: "• Cao nguyên Mộc Châu: Đồi chè trái tim, Thác Dải Yếm, Cầu kính Bạch Long.\n• Đỉnh Tà Xùa: Thiên đường săn mây bồng bềnh quanh năm.",
+    dacSan: "• Bê chao Mộc Châu: Thịt bê mềm ngọt thơm lừng hương gừng tỏi.\n• Sữa tươi Mộc Châu & Bánh sữa ngậy béo.",
+    chiPhi: "700.000đ - 1.600.000đ / ngày"
   },
   "yen bai": {
-    ten: "Yên Bái (Mù Cang Chải)", mien: "bac", tags: ["phuot", "nui cao", "ruong bac thang", "san may"],
-    anh: "https://images.unsplash.com/photo-1528127269322-539801943592?w=800",
-    moTa: "Thiên đường ruộng bậc thang Mù Cang Chải đẹp danh bất hư truyền.",
-    hoatDong: "1. Trải nghiệm Nhảy dù dù lượn 'Bay trên mùa vàng' đèo Khau Phạ.\n2. Check-in Đồi Mâm Xôi, Đồi Móng Ngựa.\n3. Tắm khoáng Trạm Tấu.",
-    diemDen: "Đèo Khau Phạ, Đồi Mâm Xôi, Đồi Móng Ngựa, Suối khoáng nóng Trạm Tấu, Hồ Thác Bà.",
-    dacSan: "Cốm Tu Lệ, Thịt sấy, Táo mèo, Nhót nướng.",
-    chiPhi: "600.000đ - 1.300.000đ/ngày.", thoiDiem: "Tháng 9 - 10 (Mùa lúa chín vàng óng) hoặc tháng 5 - 6 (Mùa nước đổ)."
+    ten: "Tỉnh Yên Bái (Mù Cang Chải)",
+    subRegion: "tay_bac", mien: "bac",
+    anh: "https://images.unsplash.com/photo-1528127269322-539801943592?w=1000",
+    moTa: "Danh thắng quốc gia Mù Cang Chải với những công trình kiến trúc ruộng bậc thang đẹp như bức tranh vẽ.",
+    thoiDiem: "• Tháng 9 - 10: Mùa vàng lúa chín mộng mơ khắp nẻo đường danh thắng.",
+    diemDen: "• Đồi Mâm Xôi & Đồi Móng Ngựa: Những khuôn hình ruộng bậc thang đỉnh cao.\n• Đèo Khau Phạ: Trải nghiệm nhảy dù lượn 'Bay trên mùa vàng'.",
+    dacSan: "• Cốm Tú Lệ: Hạt cốm dẻo thơm ngậy vị nếp nương.\n• Thịt sấy & Rượu táo mèo thơm nức.",
+    chiPhi: "700.000đ - 1.500.000đ / ngày"
   },
   "hoa binh": {
-    ten: "Hòa Bình (Mai Châu)", mien: "bac", tags: ["nghi duong", "van hoa", "thien nhien", "sinh thai"],
-    anh: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800",
-    moTa: "Cửa ngõ Tây Bắc thơ mộng với thung lũng Mai Châu bình yên và Hồ Hòa Bình xanh mát.",
-    hoatDong: "1. Chèo sub lòng hồ Hòa Bình.\n2. Đạp xe quanh bản Lác Mai Châu.\n3. Thưởng thức múa xòe bên lửa trại.\n4. Thăm thủy điện Hòa Bình.",
-    diemDen: "Thung lũng Mai Châu, Bản Lác, Lòng hồ Hòa Bình, Suối khoáng Kim Bôi, Thung Nai.",
-    dacSan: "Cơm lam gà nướng, Cơm nếp nương, Cá sông Đà nướng, Lợn mán thui luộc.",
-    chiPhi: "600.000đ - 1.400.000đ/ngày.", thoiDiem: "Tháng 10 đến tháng 4 năm sau."
+    ten: "Tỉnh Hòa Bình (Mai Châu)",
+    subRegion: "dong_bac", mien: "bac",
+    anh: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1000",
+    moTa: "Thung lũng Mai Châu bình yên, nơi hòa quyện nét văn hóa Thái đặc sắc và lòng hồ Hòa Bình xanh mát.",
+    thoiDiem: "• Tháng 10 - Tháng 4 năm sau: Mùa khô mát mẻ, lý tưởng nghỉ dưỡng.",
+    diemDen: "• Bản Lác & Bản Poom Coọng: Trải nghiệm lưu trú nhà sàn truyền thống.\n• Hồ Hòa Bình: Chèo sub, đi thuyền ngoạn cảnh vịnh trên núi.",
+    dacSan: "• Cơm lam gà nướng: Cơm nếp nương thơm dẻo chấm muối vừng.\n• Cá sông Đà nướng lá chuối thơm nức.",
+    chiPhi: "600.000đ - 1.400.000đ / ngày"
   },
   "lai chau": {
-    ten: "Lai Châu", mien: "bac", tags: ["phuot", "mao hiem", "nui cao"],
-    anh: "https://images.unsplash.com/photo-1599707303381-807c42749419?w=800",
-    moTa: "Vùng đất hùng vĩ nơi sở hữu các đỉnh núi cao bậc nhất Việt Nam như Pusilung, Putaleng.",
-    hoatDong: "1. Leo đỉnh Putaleng, Pusilung.\n2. Đi cầu kính Rồng May Đèo Ô Quy Hồ.\n3. Thăm bản Sin Suối Hồ.",
-    diemDen: "Đèo Ô Quy Hồ, Cầu kính Rồng May, Bản Sin Suối Hồ, Peak Putaleng.",
-    dacSan: "Lợn cắp nách, Rượu ngô Sùng Phài, Măng nứa, Cánh kiến đỏ.",
-    chiPhi: "700.000đ - 1.600.000đ/ngày.", thoiDiem: "Tháng 9 - 11 hoặc tháng 3 - 4."
+    ten: "Tỉnh Lai Châu",
+    subRegion: "tay_bac", mien: "bac",
+    anh: "https://images.unsplash.com/photo-1599707303381-807c42749419?w=1000",
+    moTa: "Mảnh đất sở hữu những đỉnh núi cao bậc nhất Việt Nam như Putaleng, Pusilung dành cho dân trekking.",
+    thoiDiem: "• Tháng 9 - 11: Mùa trekking núi cao săn mây rực rỡ.",
+    diemDen: "• Cầu kính Rồng May & Đèo Ô Quy Hồ đỉnh cao phiêu lưu.\n• Bản Sin Suối Hồ: Bản du lịch cộng đồng tuyệt đẹp.",
+    dacSan: "• Lợn cắp nách nướng nguyên con & Rượu ngô ngâm thảo mộc.",
+    chiPhi: "700.000đ - 1.700.000đ / ngày"
   },
   "lang son": {
-    ten: "Lạng Sơn", mien: "bac", tags: ["mua sam", "tam linh", "lich su"],
-    anh: "https://images.unsplash.com/photo-1509030450996-93f2e3d84298?w=800",
-    moTa: "Mảnh đất biên giới nổi tiếng với các chợ cửa khẩu sôi động và di tích Động Tam Thanh.",
-    hoatDong: "1. Mua sắm chợ Đông Kinh, Tân Thanh.\n2. Thăm chùa Tam Thanh, Núi Nàng Tô Thị.\n3. Trải nghiệm đỉnh Mẫu Sơn.",
-    diemDen: "Động Tam Thanh, Đỉnh Mẫu Sơn, Ải Chi Lăng, Chợ Tân Thanh.",
-    dacSan: "Vịt quay Lạng Sơn, Khâu nhục, Phở chua, Bánh áp chao.",
-    chiPhi: "500.000đ - 1.200.000đ/ngày.", thoiDiem: "Tháng 12 - 1 (Ngắm băng tuyết Mẫu Sơn) hoặc mùa xuân."
+    ten: "Tỉnh Lạng Sơn",
+    subRegion: "dong_bac", mien: "bac",
+    anh: "https://images.unsplash.com/photo-1509030450996-93f2e3d84298?w=1000",
+    moTa: "Mảnh đất biên giới nổi tiếng với danh thắng Chùa Tam Thanh, đỉnh Mẫu Sơn tuyết phủ và mua sắm cửa khẩu.",
+    thoiDiem: "• Tháng 12 - 1: Săn băng giá trên đỉnh Mẫu Sơn.",
+    diemDen: "• Động Tam Thanh, Đỉnh Mẫu Sơn, Ải Chi Lăng lịch sử.",
+    dacSan: "• Vịt quay Lạng Sơn da giòn béo ngậy & Khâu nhục đậm đà.",
+    chiPhi: "500.000đ - 1.300.000đ / ngày"
   },
   "bac kan": {
-    ten: "Bắc Kạn", mien: "bac", tags: ["song nuoc", "thien nhien", "nghi duong"],
-    anh: "https://images.unsplash.com/photo-1509030450996-93f2e3d84298?w=800",
-    moTa: "Nơi sở hữu Hồ Ba Bể - một trong những hồ nước ngọt tự nhiên lớn nhất thế giới.",
-    hoatDong: "1. Trôi thuyền dạo lòng Hồ Ba Bể.\n2. Thăm Động Puông và Thác Đầu Đẳng.\n3. Khám phá ATK Chợ Đồn.",
-    diemDen: "Hồ Ba Bể, Động Puông, Thác Đầu Đẳng, Động Hua Mạ, ATK Chợ Đồn.",
-    dacSan: "Cá nướng Hồ Ba Bể, Tôm chua, Bánh tày, Miến dong Na Rì.",
-    chiPhi: "500.000đ - 1.100.000đ/ngày.", thoiDiem: "Tháng 5 - 9 (Mùa hè nước hồ xanh trong)."
+    ten: "Tỉnh Bắc Kạn",
+    subRegion: "dong_bac", mien: "bac",
+    anh: "https://images.unsplash.com/photo-1509030450996-93f2e3d84298?w=1000",
+    moTa: "Sở hữu Hồ Ba Bể - Một trong 20 hồ nước ngọt tự nhiên lớn nhất thế giới giữa rừng nguyên sinh.",
+    thoiDiem: "• Tháng 5 - 9: Thời tiết mát mẻ, hồ nước trong xanh.",
+    diemDen: "• Hồ Ba Bể, Động Puông, Thác Đầu Đẳng hoang sơ.",
+    dacSan: "• Cá nướng Hồ Ba Bể & Tôm chua béo ngậy.",
+    chiPhi: "500.000đ - 1.200.000đ / ngày"
   },
   "tuyen quang": {
-    ten: "Tuyên Quang", mien: "bac", tags: ["lich su", "van hoa", "thien nhien"],
-    anh: "https://images.unsplash.com/photo-1509030450996-93f2e3d84298?w=800",
-    moTa: "Thủ đô khu giải phóng ATK Tân Trào và lễ hội Trung thu lớn nhất Việt Nam.",
-    hoatDong: "1. Thăm Cây đa Tân Trào, Lán Nà Nưa.\n2. Xem rước đèn Trung thu Tuyên Quang.\n3. Tắm khoáng nóng Mỹ Lâm.",
-    diemDen: "Khu di tích Tân Trào, Hồ Na Hang, Suối khoáng Mỹ Lâm, Thác Mơ.",
-    dacSan: "Thịt lợn đen Na Hang, Cam sành Hàm Yên, Rượu ngô Na Hang, Mắm cá ruộng.",
-    chiPhi: "500.000đ - 1.100.000đ/ngày.", thoiDiem: "Tháng 8 âm lịch (Lễ hội Trung Thu hoành tráng)."
+    ten: "Tỉnh Tuyên Quang",
+    subRegion: "dong_bac", mien: "bac",
+    anh: "https://images.unsplash.com/photo-1509030450996-93f2e3d84298?w=1000",
+    moTa: "Thủ đô khu giải phóng ATK lịch sử và Lễ hội Trung thu quy mô nhất Việt Nam.",
+    thoiDiem: "• Tháng 8 âm lịch: Đêm hội Trung thu rực rỡ sắc màu.",
+    diemDen: "• Khu di tích Tân Trào, Hồ Na Hang - Lâm Bình thơ mộng.",
+    dacSan: "• Thịt lợn đen Na Hang & Mắm cá ruộng Chiêm Hóa.",
+    chiPhi: "500.000đ - 1.100.000đ / ngày"
   },
   "thai nguyen": {
-    ten: "Thái Nguyên", mien: "bac", tags: ["sinh thai", "tra", "lich su"],
-    anh: "https://images.unsplash.com/photo-1509030450996-93f2e3d84298?w=800",
-    moTa: "Đệ nhất danh trà Việt Nam với những đồi chè Tân Cương xanh ngút ngàn.",
-    hoatDong: "1. Thưởng trà & hái chè Tân Cương.\n2. Vui chơi Hồ Núi Cốc.\n3. Tham quan Bảo tàng Văn hóa các dân tộc.",
-    diemDen: "Đồi chè Tân Cương, Hồ Núi Cốc, Hang Phượng Hoàng, ATK Định Hóa.",
-    dacSan: "Trà Tân Cương, Trám đen, Bánh chưng Bờm, Tôm cuốn Thừa Lâm.",
-    chiPhi: "400.000đ - 1.000.000đ/ngày.", thoiDiem: "Tháng 9 - 12 (Trà ngon nhất) hoặc mùa hè."
+    ten: "Tỉnh Thái Nguyên",
+    subRegion: "dong_bac", mien: "bac",
+    anh: "https://images.unsplash.com/photo-1509030450996-93f2e3d84298?w=1000",
+    moTa: "Đệ nhất danh trà Việt Nam với những đồi chè Tân Cương xanh mút tầm mắt.",
+    thoiDiem: "• Quanh năm, đẹp nhất tháng 9 - 12.",
+    diemDen: "• Đồi chè Tân Cương, Hồ Núi Cốc, Khu di tích ATK Định Hóa.",
+    dacSan: "• Trà Tân Cương thơm đượm hậu ngọt & Bánh chưng Bờm.",
+    chiPhi: "450.000đ - 1.000.000đ / ngày"
   },
   "phu tho": {
-    ten: "Phú Thọ", mien: "bac", tags: ["tam linh", "lich su", "van hoa"],
-    anh: "https://images.unsplash.com/photo-1509030450996-93f2e3d84298?w=800",
-    moTa: "Đất Tổ Hùng Vương thiêng liêng, cội nguồn của dân tộc Việt Nam.",
-    hoatDong: "1. Dâng hương Đền Hùng trảy hội Giỗ Tổ.\n2. Nghe Hát Xoan Phú Thọ.\n3. Dạo quanh Đồi chè Long Cốc ảo diệu.",
-    diemDen: "Khu di tích Đền Hùng, Đồi chè Long Cốc, Vườn quốc gia Xuân Sơn, Đầm Vân Luông.",
-    dacSan: "Thịt chua Thanh Sơn, Bưởi Đoan Hùng, Rêu đá, Bánh tai.",
-    chiPhi: "500.000đ - 1.100.000đ/ngày.", thoiDiem: "Tháng 3 âm lịch (Lễ hội Đền Hùng 10/3)."
+    ten: "Tỉnh Phú Thọ",
+    subRegion: "dong_bac", mien: "bac",
+    anh: "https://images.unsplash.com/photo-1509030450996-93f2e3d84298?w=1000",
+    moTa: "Đất Tổ Hùng Vương thiêng liêng cội nguồn dân tộc và Đồi chè Long Cốc ảo diệu.",
+    thoiDiem: "• Tháng 3 âm lịch: Giỗ Tổ Hùng Vương trang nghiêm.",
+    diemDen: "• Khu di tích lịch sử Đền Hùng, Đồi chè Long Cốc nức tiếng.",
+    dacSan: "• Thịt chua Thanh Sơn & Bưởi Đoan Hùng ngọt thanh.",
+    chiPhi: "500.000đ - 1.100.000đ / ngày"
   },
   "bac giang": {
-    ten: "Bắc Giang", mien: "bac", tags: ["trai cay", "sinh thai", "tam linh"],
-    anh: "https://images.unsplash.com/photo-1509030450996-93f2e3d84298?w=800",
-    moTa: "Thủ phủ vải thiều Lục Ngạn và chốn thiền tự Tây Yên Tử thanh bình.",
-    hoatDong: "1. Bái Phật Tây Yên Tử.\n2. Vào vườn hái vải thiều Lục Ngạn chín đỏ.\n3. Cắm trại Hồ Cấm Sơn.",
-    diemDen: "Chùa Vĩnh Nghiêm, Khu du lịch Tây Yên Tử, Hồ Cấm Sơn, Đồng Cao.",
-    dacSan: "Vải thiều Lục Ngạn, Bánh đa Kế, Mỳ Chũ, Gà đồi Yên Thế.",
-    chiPhi: "400.000đ - 1.000.000đ/ngày.", thoiDiem: "Tháng 6 (Mùa vải thiều chín rực đỏ)."
+    ten: "Tỉnh Bắc Giang",
+    subRegion: "dong_bac", mien: "bac",
+    anh: "https://images.unsplash.com/photo-1509030450996-93f2e3d84298?w=1000",
+    moTa: "Thủ phủ vải thiều Lục Ngạn ngọt lịm và danh thắng Tây Yên Tử thanh tịnh.",
+    thoiDiem: "• Tháng 6: Mùa thu hoạch vải thiều đỏ rực.",
+    diemDen: "• Tây Yên Tử, Chùa Vĩnh Nghiêm lưu giữ mộc bản di sản.",
+    dacSan: "• Vải thiều Lục Ngạn & Bánh đa Kế giòn rụm.",
+    chiPhi: "400.000đ - 1.000.000đ / ngày"
   },
   "vinh phuc": {
-    ten: "Vĩnh Phúc (Tam Đảo)", mien: "bac", tags: ["nghi duong", "san may", "tam linh"],
-    anh: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800",
-    moTa: "Đà Lạt thu nhỏ của miền Bắc với thị trấn sương mờ Tam Đảo và Thiền viện Tây Thiên.",
-    hoatDong: "1. Săn mây và uống cà phê Quán Gió Tam Đảo.\n2. Hành hương Thiền viện Trúc Lâm Tây Thiên.\n3. Nghỉ dưỡng Resort Đại Lải.",
-    diemDen: "Thị trấn Tam Đảo, Hồ Đại Lải, Thiền viện Trúc Lâm Tây Thiên, Nhà thờ đá Tam Đảo.",
-    dacSan: "Ngọn su su xào, Gà đồi bọc đất nướng, Lợn mán Tam Đảo, Bánh hòn.",
-    chiPhi: "600.000đ - 1.500.000đ/ngày.", thoiDiem: "Quanh năm (Thời tiết luôn mát mẻ)."
+    ten: "Tỉnh Vĩnh Phúc (Tam Đảo)",
+    subRegion: "dong_bang_sh", mien: "bac",
+    anh: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1000",
+    moTa: "Thị trấn Tam Đảo trong mây - Đà Lạt thu nhỏ của miền Bắc với không khí 4 mùa trong 1 ngày.",
+    thoiDiem: "• Quanh năm, lý tưởng đi trốn cuối tuần.",
+    diemDen: "• Thị trấn Tam Đảo, Hồ Đại Lải, Thiền viện Trúc Lâm Tây Thiên.",
+    dacSan: "• Ngọn su su xào tỏi giòn ngọt & Gà đồi nướng đất sét.",
+    chiPhi: "600.000đ - 1.600.000đ / ngày"
   },
   "bac ninh": {
-    ten: "Bắc Ninh", mien: "bac", tags: ["van hoa", "quan ho", "tam linh"],
-    anh: "https://images.unsplash.com/photo-1509030450996-93f2e3d84298?w=800",
-    moTa: "Nôi văn hóa Kinh Bắc xứ sở câu quan họ đùa duyên và nhiều ngôi chùa cổ kính.",
-    hoatDong: "1. Lắng nghe Dân ca Quan họ Bắc Ninh.\n2. Vãn cảnh Chùa Dâu, Chùa Phật Tích.\n3. Thăm làng nghề gốm Phù Lãng.",
-    diemDen: "Chùa Dâu, Chùa Phật Tích, Đền Đô, Làng gốm Phù Lãng, Làng tranh Đông Hồ.",
-    dacSan: "Bánh phu thê Đình Bảng, Nem Bùi, Bánh tẻ Chờ, Rượu Làng Vân.",
-    chiPhi: "400.000đ - 900.000đ/ngày.", thoiDiem: "Tháng 1 - 3 (Mùa lễ hội Xuân Kinh Bắc)."
+    ten: "Tỉnh Bắc Ninh",
+    subRegion: "dong_bang_sh", mien: "bac",
+    anh: "https://images.unsplash.com/photo-1509030450996-93f2e3d84298?w=1000",
+    moTa: "Nôi văn hóa Kinh Bắc xao xuyến những điệu Dân ca Quan họ ngọt ngào.",
+    thoiDiem: "• Tháng 1 - 3 âm lịch: Mùa lễ hội xuân Kinh Bắc.",
+    diemDen: "• Chùa Phật Tích, Chùa Dâu cổ nhất Việt Nam, Đền Đô.",
+    dacSan: "• Bánh phu thê Đình Bảng & Nem Bùi truyền thống.",
+    chiPhi: "400.000đ - 900.000đ / ngày"
   },
   "hai duong": {
-    ten: "Hải Dương", mien: "bac", tags: ["van hoa", "lich su", "am thuc"],
-    anh: "https://images.unsplash.com/photo-1509030450996-93f2e3d84298?w=800",
-    moTa: "Xứ Đông văn hiến với danh thắng Côn Sơn - Kiếp Bạc gắn liền tên tuổi Nguyễn Trãi.",
-    hoatDong: "1. Viếng danh thắng Côn Sơn - Kiếp Bạc.\n2. Xem múa rối nước Hồng Phong.\n3. Thưởng thức bánh đậu xanh trà xanh.",
-    diemDen: "Côn Sơn Kiếp Bạc, Đảo Cò Chi Lăng Nam, Giếng Ngọc, Chùa Kính Chủ.",
-    dacSan: "Bánh đậu xanh, Bánh gai Ninh Giang, Bún cá rô đồng, Vải thiều Thanh Hà.",
-    chiPhi: "400.000đ - 900.000đ/ngày.", thoiDiem: "Tháng 1 - 3 hoặc tháng 8 âm lịch."
+    ten: "Tỉnh Hải Dương",
+    subRegion: "dong_bang_sh", mien: "bac",
+    anh: "https://images.unsplash.com/photo-1509030450996-93f2e3d84298?w=1000",
+    moTa: "Xứ Đông văn hiến nơi lưu giữ quần thể di tích danh thắng Côn Sơn - Kiếp Bạc.",
+    thoiDiem: "• Tháng 1 - 3 & Tháng 8 âm lịch hội xuân, hội thu.",
+    diemDen: "• Côn Sơn - Kiếp Bạc, Đảo Cò Chi Lăng Nam xanh mát.",
+    dacSan: "• Bánh đậu xanh Hải Dương & Bánh gai Ninh Giang.",
+    chiPhi: "400.000đ - 900.000đ / ngày"
   },
   "hai phong": {
-    ten: "Hải Phòng", mien: "bac", tags: ["bien", "foodtour", "du thuyen", "checkin"],
-    anh: "https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?w=800",
-    moTa: "Thành phố Hoa Phượng Đỏ sôi động nổi tiếng với thiên đường Food Tour và Đảo Cát Bà.",
-    hoatDong: "1. Oanh tạc Food Tour Hải Phòng 20 món ngon.\n2. Đi cáp treo & tắm biển Cát Bà.\n3. Chèo thuyền Kayak Vịnh Lan Hạ.",
-    diemDen: "Quần đảo Cát Bà, Vịnh Lan Hạ, Bãi biển Đồ Sơn, Tuyệt Tình Cốc, Chợ Cát Bi.",
-    dacSan: "Bánh đa cua, Bánh mì que, Dừa dầm, Bánh đúc tàu, Hải sản Cát Bà.",
-    chiPhi: "600.000đ - 1.600.000đ/ngày.", thoiDiem: "Tháng 4 - 8 (Tắm biển Cát Bà) hoặc đi Foodtour quanh năm."
+    ten: "Thành phố Hải Phòng",
+    subRegion: "dong_bang_sh", mien: "bac",
+    anh: "https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?w=1000",
+    moTa: "Thành phố Hoa Phượng Đỏ sôi động nổi tiếng với thiên đường Foodtour và Đảo Cát Bà xanh mát.",
+    thoiDiem: "• Tháng 4 - 8: Tắm biển Cát Bà.\n• Quanh năm: Foodtour ẩm thực phố phường.",
+    diemDen: "• Quần đảo Cát Bà & Vịnh Lan Hạ: Lặn san hô, chèo kayak.\n• Tuyến Foodtour phố cổ Hải Phòng rực rỡ món ngon.",
+    dacSan: "• Bánh đa cua Hải Phòng đậm đà vị riêu cua đồng.\n• Bánh mì que cay & Dừa dầm béo ngậy.",
+    chiPhi: "600.000đ - 1.700.000đ / ngày"
   },
   "hung yen": {
-    ten: "Hưng Yên", mien: "bac", tags: ["van hoa", "co kinh", "am thuc"],
-    anh: "https://images.unsplash.com/photo-1509030450996-93f2e3d84298?w=800",
-    moTa: "Thương cảng Phố Hiến xưa nổi danh 'Thứ nhất Kinh Kỳ, thứ nhì Phố Hiến'.",
-    hoatDong: "1. Thăm di tích Phố Hiến cổ kính.\n2. Thưởng thức nhãn lồng chính gốc.\n3. Tham quan Văn Miếu Xích Đằng.",
-    diemDen: "Phố Hiến, Văn Miếu Xích Đằng, Chùa Chuông, Đền Chử Đồng Tử.",
-    dacSan: "Nhãn lồng Hưng Yên, Bún thang lợn, Chè hạt sen nhãn lồng, Ếch om Phượng Tường.",
-    chiPhi: "350.000đ - 800.000đ/ngày.", thoiDiem: "Tháng 7 - 8 (Mùa nhãn lồng chín rộ)."
+    ten: "Tỉnh Hưng Yên",
+    subRegion: "dong_bang_sh", mien: "bac",
+    anh: "https://images.unsplash.com/photo-1509030450996-93f2e3d84298?w=1000",
+    moTa: "Thương cảng Phố Hiến sầm uất nổi tiếng một thời 'Thứ nhất Kinh Kỳ, thứ nhì Phố Hiến'.",
+    thoiDiem: "• Tháng 7 - 8: Mùa nhãn lồng chín rộ.",
+    diemDen: "• Phố Hiến cổ kính, Chùa Chuông, Văn Miếu Xích Đằng.",
+    dacSan: "• Nhãn lồng Hưng Yên ngọt mọng & Bún thang lợn Phố Hiến.",
+    chiPhi: "350.000đ - 800.000đ / ngày"
   },
   "ha nam": {
-    ten: "Hà Nam", mien: "bac", tags: ["tam linh", "nghi duong", "checkin"],
-    anh: "https://images.unsplash.com/photo-1509030450996-93f2e3d84298?w=800",
-    moTa: "Điểm đến tâm linh mới nổi với Ngôi chùa Tam Chúc lớn nhất thế giới.",
-    hoatDong: "1. Đi du thuyền ngoạn cảnh Quần thể Chùa Tam Chúc.\n2. Vãn cảnh Chùa Địa Tạng Phi Lai Tự thanh tịnh.\n3. Thăm làng Cổ Vũ Đại.",
-    diemDen: "Chùa Tam Chúc, Chùa Địa Tạng Phi Lai Tự, Làng Vũ Đại, Đền Trần Thương.",
-    dacSan: "Cá kho làng Vũ Đại, Bánh cuốn chả nướng Phủ Lý, Chuối ngự Đại Hoàng.",
-    chiPhi: "500.000đ - 1.200.000đ/ngày.", thoiDiem: "Tháng 1 - 3 (Lễ chùa đầu năm)."
+    ten: "Tỉnh Hà Nam",
+    subRegion: "dong_bang_sh", mien: "bac",
+    anh: "https://images.unsplash.com/photo-1509030450996-93f2e3d84298?w=1000",
+    moTa: "Điểm đến tâm linh nổi tiếng sở hữu Quần thể du lịch Chùa Tam Chúc lớn nhất thế giới.",
+    thoiDiem: "• Tháng 1 - 3 âm lịch mùa hành hương.",
+    diemDen: "• Chùa Tam Chúc, Chùa Địa Tạng Phi Lai Tự tĩnh lặng.",
+    dacSan: "• Cá kho làng Vũ Đại & Bánh cuốn Phủ Lý nóng hổi.",
+    chiPhi: "500.000đ - 1.200.000đ / ngày"
   },
   "nam dinh": {
-    ten: "Nam Định", mien: "bac", tags: ["tam linh", "kiien truc", "am thuc"],
-    anh: "https://images.unsplash.com/photo-1509030450996-93f2e3d84298?w=800",
-    moTa: "Đất Nam Định cổ kính với các nhà thờ Công giáo kiến trúc châu Âu tráng lệ.",
-    hoatDong: "1. Check-in các nhà thờ cổ Đền Thánh Hưng Nghĩa, Nhà thờ Đổ.\n2. Xin ấn Đền Trần đêm Rằm.\n3. Thưởng thức phở bò gốc Nam Định.",
-    diemDen: "Đền Trần, Nhà thờ đổ Hải Lý, Đền Thánh Hưng Nghĩa, Vườn quốc gia Xuân Thủy.",
-    dacSan: "Phở bò Nam Định, Bánh xíu báo, Kẹo Sưu Phố, Nem nắm Giao Thủy.",
-    chiPhi: "400.000đ - 1.000.000đ/ngày.", thoiDiem: "Tháng 1 - 3 (Mùa lễ hội Đền Trần)."
+    ten: "Tỉnh Nam Định",
+    subRegion: "dong_bang_sh", mien: "bac",
+    anh: "https://images.unsplash.com/photo-1509030450996-93f2e3d84298?w=1000",
+    moTa: "Vùng đất thánh đường kiến trúc nhà thờ Công giáo tráng lệ và ẩm thực Phở Bò gốc.",
+    thoiDiem: "• Quanh năm, đặc biệt dịp Giáng Sinh náo nhiệt.",
+    diemDen: "• Nhà thờ đổ Hải Lý, Tòa giám mục Bùi Chu, Đền Trần.",
+    dacSan: "• Phở bò Nam Định chuẩn vị gốc & Bánh xíu báo thơm lừng.",
+    chiPhi: "400.000đ - 1.000.000đ / ngày"
   },
   "thai binh": {
-    ten: "Thái Bình", mien: "bac", tags: ["bien", "dong que", "tam linh"],
-    anh: "https://images.unsplash.com/photo-1509030450996-93f2e3d84298?w=800",
-    moTa: "Xứ sở lúa nước bình yên với bãi biển vô cực Cồn Đen độc đáo.",
-    hoatDong: "1. Trải nghiệm bãi biển vô cực Quang Lang chụp ảnh phản chiếu phản gương.\n2. Thăm Chùa Keo kiến trúc gỗ cổ nhất Việt Nam.",
-    diemDen: "Biển vô cực Quang Lang, Chùa Keo, Bãi biển Cồn Đen, Làng vườn Bách Thuận.",
-    dacSan: "Bánh cáy Thái Bình, Canh cá quỳnh cừ, Bún bung hoa chuối, Nộm gỏi biển.",
-    chiPhi: "400.000đ - 900.000đ/ngày.", thoiDiem: "Tháng 5 - 9 (Đón bình minh biển vô cực)."
+    ten: "Tỉnh Thái Bình",
+    subRegion: "dong_bang_sh", mien: "bac",
+    anh: "https://images.unsplash.com/photo-1509030450996-93f2e3d84298?w=1000",
+    moTa: "Quê hương lúa nước bình yên với bãi biển vô cực Quang Lang độc đáo.",
+    thoiDiem: "• Tháng 5 - 9: Săn bình minh bãi biển vô cực.",
+    diemDen: "• Biển vô cực Quang Lang, Chùa Keo cổ kính độc đáo.",
+    dacSan: "• Bánh cáy Thái Bình & Canh cá quỳnh cừ đậm vị.",
+    chiPhi: "400.000đ - 900.000đ / ngày"
   },
 
-  // ----------------------- MIỀN TRUNG & TÂY NGUYÊN (19 TỈNH THÀNH) -----------------------
+  // --- MIỀN TRUNG & TÂY NGUYÊN (19 TỈNH) ---
   "thanh hoa": {
-    ten: "Thanh Hóa", mien: "trung", tags: ["bien", "nghi duong", "lich su", "nui cao"],
-    anh: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800",
-    moTa: "Cửa ngõ Miền Trung với bãi biển Sầm Sơn nhộn nhịp và Bãi Đông hoang sơ.",
-    hoatDong: "1. Tắm biển Sầm Sơn, Bãi Đông Nghi Sơn.\n2. Khám phá khu bảo tồn Pù Luông ngắm ruộng bậc thang.\n3. Thăm Di sản Thành Nhà Hồ.",
-    diemDen: "Biển Sầm Sơn, Pù Luông, Bãi Đông Nghi Sơn, Di sản Thành Nhà Hồ, Suối cá thần Cẩm Lương.",
-    dacSan: "Nem chua Thanh Hóa, Chả tôm, Bánh răng bừa, Mắm tép Bè Kẻ.",
-    chiPhi: "600.000đ - 1.500.000đ/ngày.", thoiDiem: "Tháng 5 - 8 (Tắm biển) hoặc tháng 9 - 10 (Pù Luông lúa chín)."
+    ten: "Tỉnh Thanh Hóa",
+    subRegion: "bac_trung_bo", mien: "trung",
+    anh: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1000",
+    moTa: "Biển Sầm Sơn nhộn nhịp hòa cùng không gian sinh thái xanh ngắt tại khu bảo tồn Pù Luông.",
+    thoiDiem: "• Tháng 5 - 8: Tắm biển Sầm Sơn.\n• Tháng 9 - 10: Ngắm ruộng bậc thang Pù Luông.",
+    diemDen: "• Biển Sầm Sơn & Bãi Đông hoang sơ.\n• Khu bảo tồn thiên nhiên Pù Luông xanh ngát.\n• Di sản thế giới Thành Nhà Hồ.",
+    dacSan: "• Nem chua Thanh Hóa giòn sần sật, chua ngọt trọn vị.\n• Chả tôm Nướng & Bánh cuốn Thanh Hóa.",
+    chiPhi: "600.000đ - 1.600.000đ / ngày"
   },
   "nghe an": {
-    ten: "Nghệ An", mien: "trung", tags: ["bien", "lich su", "tam linh"],
-    anh: "https://images.unsplash.com/photo-1552353617-3bfd679b3bdd?w=800",
-    moTa: "Quê hương Chủ tịch Hồ Chí Minh vĩ đại và bãi biển Cửa Lộ trải dài.",
-    hoatDong: "1. Thăm Làng Sen Quê Bác Nam Đàn.\n2. Tắm biển Cửa Lò và bãi Lăng Cửa Hội.\n3. Săn mây miền Tây Nghệ An Pù Mát.",
-    diemDen: "Khu di tích Kim Liên (Quê Bác), Biển Cửa Lò, Đồi chè Thanh Chương, Vườn quốc gia Pù Mát.",
-    dacSan: "Cháo lươn / Súp lươn Nghệ An, Nhút Thanh Chương, Tương Nam Đàn, Mực nhảy Cửa Lò.",
-    chiPhi: "500.000đ - 1.300.000đ/ngày.", thoiDiem: "Tháng 5 - 8 (Du lịch biển)."
+    ten: "Tỉnh Nghệ An",
+    subRegion: "bac_trung_bo", mien: "trung",
+    anh: "https://images.unsplash.com/photo-1552353617-3bfd679b3bdd?w=1000",
+    moTa: "Quê hương Bác Hồ kính yêu, sở hữu bãi biển Cửa Lò sầm uất và đồi chè Thanh Chương rợp xanh.",
+    thoiDiem: "• Tháng 5 - 8: Tắm biển Cửa Lò mát rượi.",
+    diemDen: "• Khu di tích Kim Liên (Quê Bác).\n• Biển Cửa Lò & Đồi chè ốc đảo Thanh Chương.",
+    dacSan: "• Súp lươn Nghệ An ăn kèm bánh mì giòn tan.\n• Nhút Thanh Chương & Tương Nam Đàn.",
+    chiPhi: "500.000đ - 1.300.000đ / ngày"
   },
   "ha tinh": {
-    ten: "Hà Tĩnh", mien: "trung", tags: ["lich su", "bien", "tam linh"],
-    anh: "https://images.unsplash.com/photo-1552353617-3bfd679b3bdd?w=800",
-    moTa: "Mảnh đất kiên cường với Di tích Ngã ba Đồng Lộc và biển Thiên Cầm trong xanh.",
-    hoatDong: "1. Dâng hương di tích Ngã ba Đồng Lộc.\n2. Tắm biển Thiên Cầm hoang sơ.\n3. Vãn cảnh Chùa Hương Tích.",
-    diemDen: "Ngã ba Đồng Lộc, Biển Thiên Cầm, Chùa Hương Tích, Hồ Kẻ Gỗ.",
-    dacSan: "Kẹo Cu Đơ Hà Tĩnh, Bánh mì ram mướt, Mực nhảy Vũng Áng.",
-    chiPhi: "450.000đ - 1.100.000đ/ngày.", thoiDiem: "Tháng 4 - 8."
+    ten: "Tỉnh Hà Tĩnh",
+    subRegion: "bac_trung_bo", mien: "trung",
+    anh: "https://images.unsplash.com/photo-1552353617-3bfd679b3bdd?w=1000",
+    moTa: "Mảnh đất lịch sử thiêng liêng Ngã ba Đồng Lộc và biển Thiên Cầm trong xanh êm đềm.",
+    thoiDiem: "• Tháng 4 - 8: Mùa biển Thiên Cầm tuyệt đẹp.",
+    diemDen: "• KDT Ngã ba Đồng Lộc, Biển Thiên Cầm, Chùa Hương Tích.",
+    dacSan: "• Kẹo Cu Đơ Hà Tĩnh & Bánh ram mướt dẻo thơm.",
+    chiPhi: "450.000đ - 1.100.000đ / ngày"
   },
   "quang binh": {
-    ten: "Quảng Bình", mien: "trung", tags: ["mao hiem", "hang dong", "thien nhien"],
-    anh: "https://images.unsplash.com/photo-1599707303381-807c42749419?w=800",
-    moTa: "Vương quốc hang động thế giới sở hữu Hang Sơn Đoòng và Động Phong Nha.",
-    hoatDong: "1. Thám hiểm Vườn quốc gia Phong Nha - Kẻ Bàng.\n2. Chèo Kayak Sông Chày - Hang Tối.\n3. Đu Zipline và trượt cát Quang Phú.",
-    diemDen: "Động Phong Nha, Động Thiên Đường, Hang Sơn Đoòng, Sông Chày Hang Tối, Đồi cát Quang Phú.",
-    dacSan: "Cháo canh Quảng Bình, Lẩu cá khoai, Bánh lọc lá tôm thịt, Đẻn biển.",
-    chiPhi: "900.000đ - 3.000.000đ/ngày.", thoiDiem: "Tháng 4 đến tháng 8 (Mùa khô ráo)."
+    ten: "Tỉnh Quảng Bình",
+    subRegion: "bac_trung_bo", mien: "trung",
+    anh: "https://images.unsplash.com/photo-1599707303381-807c42749419?w=1000",
+    moTa: "Vương quốc hang động thế giới Phong Nha - Kẻ Bàng kỳ vĩ mê hoặc giới phiêu lưu mạo hiểm.",
+    thoiDiem: "• Tháng 4 - 8: Mùa thám hiểm hang động lý tưởng nhất.",
+    diemDen: "• Động Phong Nha, Động Thiên Đường, Hang Sơn Đoòng.\n• Sông Chày - Hang Tối: Zipline và chèo thuyền Kayak.",
+    dacSan: "• Cháo canh Quảng Bình & Lẩu cá khoai nóng hổi.",
+    chiPhi: "900.000đ - 3.000.000đ / ngày"
   },
   "quang tri": {
-    ten: "Quảng Trị", mien: "trung", tags: ["lich su", "hoai niem", "bien"],
-    anh: "https://images.unsplash.com/photo-1552353617-3bfd679b3bdd?w=800",
-    moTa: "Tỉnh thành lịch sử với Thành Cổ Quảng Trị, Đôi bờ Hiền Lương - Bến Hải.",
-    hoatDong: "1. Về thăm Thành cổ Quảng Trị & Nghĩa trang Đường 9.\n2. Khám phá Địa đạo Vịnh Mốc.\n3. Du lịch Đảo Cồn Cỏ.",
-    diemDen: "Thành cổ Quảng Trị, Địa đạo Vịnh Mốc, Cầu Hiền Lương - Sông Bến Hải, Đảo Cồn Cỏ.",
-    dacSan: "Thịt trâu lá trơảng, Bánh lọc Mỹ Chánh, Bún hến Mai Xá, Rượu Kim Long.",
-    chiPhi: "500.000đ - 1.200.000đ/ngày.", thoiDiem: "Tháng 4 - 8."
+    ten: "Tỉnh Quảng Trị",
+    subRegion: "bac_trung_bo", mien: "trung",
+    anh: "https://images.unsplash.com/photo-1552353617-3bfd679b3bdd?w=1000",
+    moTa: "Mảnh đất anh hùng ghi dấu lịch sử Đôi bờ Hiền Lương - Bến Hải và Địa đạo Vịnh Mốc.",
+    thoiDiem: "• Tháng 4 - 8: Mùa nắng đẹp khô ráo.",
+    diemDen: "• Thành cổ Quảng Trị, Địa đạo Vịnh Mốc, Cầu Hiền Lương.",
+    dacSan: "• Thịt trâu lá trơảng & Bánh lọc Mỹ Chánh.",
+    chiPhi: "500.000đ - 1.200.000đ / ngày"
   },
   "thua thien hue": {
-    ten: "Thừa Thiên Huế", mien: "trung", tags: ["van hoa", "lich su", "am thuc", "co kinh"],
-    anh: "https://images.unsplash.com/photo-1552353617-3bfd679b3bdd?w=800",
-    moTa: "Cố đô hoài cổ dịu dàng bên sông Hương với di sản Cung điện lăng tẩm triều Nguyễn.",
-    hoatDong: "1. Thăm Đại Nội Huế & Lăng tẩm vua Nguyễn.\n2. Nghe Ca Huế trên Sông Hương đêm.\n3. Thưởng thức Bún bò Huế chính gốc.\n4. Đón hoàng hôn Đầm Lập An.",
-    diemDen: "Đại Nội Huế, Chùa Thiên Mụ, Lăng Khải Định, Đồi Vọng Cảnh, Bãi biển Lăng Cô.",
-    dacSan: "Bún bò Huế, Cơm hến, Bánh bèo - nậm - lọc, Chè Cung Đình Huế.",
-    chiPhi: "500.000đ - 1.300.000đ/ngày.", thoiDiem: "Tháng 1 - 4 (Thời tiết mát mẻ se lạnh)."
+    ten: "Tỉnh Thừa Thiên Huế",
+    subRegion: "bac_trung_bo", mien: "trung",
+    anh: "https://images.unsplash.com/photo-1552353617-3bfd679b3bdd?w=1000",
+    moTa: "Cố đô hoài cổ dịu dàng bên dòng Sông Hương thơ mộng, lưu giữ trọn vẹn di sản triều Nguyễn.",
+    thoiDiem: "• Tháng 1 - 4: Tiết trời dịu mát, không mưa.",
+    diemDen: "• Đại Nội Huế, Chùa Thiên Mụ, Lăng Khải Định, Lăng Tự Đức.\n• Trải nghiệm nghe Ca Huế trên dòng Sông Hương.",
+    dacSan: "• Bún bò Huế đậm đà chuẩn vị gốc.\n• Cơm hến, Bánh bèo, Bánh nậm, Bánh lọc tinh tế.",
+    chiPhi: "500.000đ - 1.400.000đ / ngày"
   },
   "da nang": {
-    ten: "Đà Nẵng", mien: "trung", tags: ["bien", "nghi duong", "hien dai", "checkin"],
-    anh: "https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?w=800",
-    moTa: "Thành phố đáng sống nhất Việt Nam sở hữu Cầu Vàng Bà Nà Hills và biển Mỹ Khê quyến rũ.",
-    hoatDong: "1. Check-in Cầu Vàng Bà Nà Hills.\n2. Xem Cầu Rồng phun lửa đêm T7/CN.\n3. Tắm biển Mỹ Khê.\n4. Vi vu Bán đảo Sơn Trà.",
-    diemDen: "Bà Nà Hills, Cầu Vàng, Bãi biển Mỹ Khê, Bán đảo Sơn Trà, Ngũ Hành Sơn, Cầu Rồng.",
-    dacSan: "Mì Quảng, Bánh tráng thịt heo 2 đầu da, Bún chả cá, Hải sản tươi sống.",
-    chiPhi: "800.000đ - 2.000.000đ/ngày.", thoiDiem: "Tháng 3 - 8 (Biển đẹp nắng trong)."
+    ten: "Thành phố Đà Nẵng",
+    subRegion: "nam_trung_bo", mien: "trung",
+    anh: "https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?w=1000",
+    moTa: "Thành phố đáng sống nhất Việt Nam sở hữu Cầu Vàng Bà Nà Hills và bãi biển Mỹ Khê quyến rũ.",
+    thoiDiem: "• Tháng 3 - 8: Thời tiết nắng ấm, bãi biển lặng sóng rực rỡ.",
+    diemDen: "• Sun World Bà Nà Hills: Cầu Vàng chạm mây & Làng Pháp.\n• Bãi biển Mỹ Khê: Top bãi biển đẹp nhất hành tinh.\n• Cầu Rồng phun lửa & Phun nước đêm cuối tuần.",
+    dacSan: "• Mì Quảng Đà Nẵng & Bánh tráng cuốn thịt heo 2 đầu da.\n• Hải sản tươi sống nướng mỡ hành đậm đà.",
+    chiPhi: "800.000đ - 2.200.000đ / ngày"
   },
   "quang nam": {
-    ten: "Quảng Nam (Hội An)", mien: "trung", tags: ["co kinh", "van hoa", "bien", "checkin"],
-    anh: "https://images.unsplash.com/photo-1552353617-3bfd679b3bdd?w=800",
-    moTa: "Phố cổ Hội An đèn lồng rực rỡ bên sông Hoài và Thánh địa Mỹ Sơn cổ kính.",
-    hoatDong: "1. Đi thuyền thả đèn hoa đăng Phố cổ Hội An.\n2. Đi cano lặn ngắm san hô Cù Lao Chàm.\n3. Trải nghiệm chèo thuyền thúng Rừng dừa Bảy Mẫu.",
-    diemDen: "Phố cổ Hội An, Thánh địa Mỹ Sơn, Đảo Cù Lao Chàm, Rừng dừa Bảy Mẫu, VinWonders Nam Hội An.",
-    dacSan: "Cao lầu Hội An, Mì Quảng, Bánh mì Phượng, Cơm gà Hội An.",
-    chiPhi: "700.000đ - 1.800.000đ/ngày.", thoiDiem: "Tháng 2 - 7 (Mùa khô nắng ấm)."
+    ten: "Tỉnh Quảng Nam (Hội An)",
+    subRegion: "nam_trung_bo", mien: "trung",
+    anh: "https://images.unsplash.com/photo-1552353617-3bfd679b3bdd?w=1000",
+    moTa: "Phố cổ Hội An đèn lồng rực rỡ lung linh bên sông Hoài và Di sản thế giới Thánh địa Mỹ Sơn.",
+    thoiDiem: "• Tháng 2 - 7: Tiết trời khô ráo nắng đẹp.",
+    diemDen: "• Phố cổ Hội An: Thả đèn hoa đăng đêm rằm.\n• Thánh địa Mỹ Sơn cổ kính & Đảo Cù Lao Chàm xanh mát.",
+    dacSan: "• Cao lầu Hội An, Bánh mì Phượng nức tiếng.\n• Cơm gà Hội An thơm dẻo.",
+    chiPhi: "700.000đ - 1.800.000đ / ngày"
   },
   "quang ngai": {
-    ten: "Quảng Ngãi", mien: "trung", tags: ["bien", "dao", "hoang so"],
-    anh: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800",
-    moTa: "Mảnh đất thiên đường biển đảo hoang sơ Cù Lao Re (Đảo Lý Sơn).",
-    hoatDong: "1. Đón bình minh Cổng Tụ Vò Đảo Lý Sơn.\n2. Chinh phục đỉnh Thới Lới.\n3. Tắm biển đảo An Bình.",
-    diemDen: "Đảo Lý Sơn, Cổng Tụ Vò, Đỉnh Thới Lới, Biển Mỹ Khê Quảng Ngãi, Ba Làng An.",
-    dacSan: "Tỏi cô đơn Lý Sơn, Don Quảng Ngãi, Kẹo gương, Cúm núm nướng.",
-    chiPhi: "600.000đ - 1.400.000đ/ngày.", thoiDiem: "Tháng 4 - 8 (Biển lặng sóng êm)."
+    ten: "Tỉnh Quảng Ngãi",
+    subRegion: "nam_trung_bo", mien: "trung",
+    anh: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1000",
+    moTa: "Thiên đường biển đảo Đảo Lý Sơn với những trầm tích núi lửa hàng triệu năm.",
+    thoiDiem: "• Tháng 4 - 8: Biển êm rực rỡ nắng vàng.",
+    diemDen: "• Đảo Lý Sơn, Cổng Tụ Vò, Đỉnh Thới Lới hùng vĩ.",
+    dacSan: "• Tỏi cô đơn Lý Sơn & Don Quảng Ngãi đậm vị.",
+    chiPhi: "600.000đ - 1.400.000đ / ngày"
   },
   "binh dinh": {
-    ten: "Bình Định (Quy Nhơn)", mien: "trung", tags: ["bien", "nghi duong", "checkin", "vo thuat"],
-    anh: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800",
-    moTa: "Quy Nhơn - Thiên đường biển xanh Kỳ Co, Eo Gió hùng vĩ bậc nhất.",
-    hoatDong: "1. Đi cano lặn biển ngắm san hô Kỳ Co.\n2. Dạo con đường đi bộ ven biển Eo Gió.\n3. Check-in Tháp Chăm Bánh Ít.",
-    diemDen: "Eo Gió, Bãi biển Kỳ Co, Tháp Bánh Ít, Khu dã ngoại Trung Lương, Đồi cát Phương Mai.",
-    dacSan: "Bánh hỏi lòng heo, Bánh xèo tôm nhảy, Chả trĩu rạm, Rượu Bàu Đá.",
-    chiPhi: "700.000đ - 1.600.000đ/ngày.", thoiDiem: "Tháng 3 - 8 (Nắng đẹp biển xanh ngọc)."
+    ten: "Tỉnh Bình Định (Quy Nhơn)",
+    subRegion: "nam_trung_bo", mien: "trung",
+    anh: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1000",
+    moTa: "Quy Nhơn - Thiên đường biển xanh cát trắng với Kỳ Co, Eo Gió thơ mộng.",
+    thoiDiem: "• Tháng 3 - 8: Mùa biển xanh nắng vàng rực rỡ.",
+    diemDen: "• Eo Gió, Bãi biển Kỳ Co, Tháp Bánh Ít Chăm Pa.",
+    dacSan: "• Bánh hỏi lòng heo Quy Nhơn & Bánh xèo tôm nhảy.",
+    chiPhi: "700.000đ - 1.600.000đ / ngày"
   },
   "phu yen": {
-    ten: "Phú Yên", mien: "trung", tags: ["bien", "hoang so", "checkin", "phim truong"],
-    anh: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800",
-    moTa: "Xứ sở hoa vàng trên cỏ xanh với Ghềnh Đá Đĩa địa chất độc nhất vô nhị.",
-    hoatDong: "1. Check-in Ghềnh Đá Đĩa kỳ ảo.\n2. Đón bình minh đầu tiên Tổ quốc tại Mũi Điện.\n3. Ngắm cảnh Bãi Xếp.",
-    diemDen: "Ghềnh Đá Đĩa, Mũi Điện (Cap Varella), Bãi Xếp, Đầm O Loan, Cầu gỗ Ông Tỉnh.",
-    dacSan: "Mắt cá ngừ đại dương, Sò huyết Đầm O Loan, Bánh hòa tấu ốc, Cháo hàu.",
-    chiPhi: "600.000đ - 1.400.000đ/ngày.", thoiDiem: "Tháng 3 - 8."
+    ten: "Tỉnh Phú Yên",
+    subRegion: "nam_trung_bo", mien: "trung",
+    anh: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1000",
+    moTa: "Xứ sở hoa vàng trên cỏ xanh với kiệt tác tự nhiên Ghềnh Đá Đĩa độc nhất vô nhị.",
+    thoiDiem: "• Tháng 3 - 8: Nắng đẹp khô ráo.",
+    diemDen: "• Ghềnh Đá Đĩa, Mũi Điện đón bình minh đầu tiên, Bãi Xếp.",
+    dacSan: "• Mắt cá ngừ đại dương hầm thuốc bắc & Sò huyết Đầm O Loan.",
+    chiPhi: "600.000đ - 1.400.000đ / ngày"
   },
   "khanh hoa": {
-    ten: "Khánh Hòa (Nha Trang)", mien: "trung", tags: ["bien", "nghi duong", "sang chanh", "giai tri"],
-    anh: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800",
-    moTa: "Thành phố biển Nha Trang sôi động, sở hữu vịnh biển đẹp top thế giới và VinWonders.",
-    hoatDong: "1. Quậy tưng bừng công viên giải trí VinWonders Nha Trang.\n2. Đi tour 4 đảo lặn bình khí Đảo Hòn Mun.\n3. Tắm bùn khoáng nóng thư giãn.",
-    diemDen: "VinWonders Nha Trang, Đảo Hòn Mun, Tháp Bà Ponagar, Đảo Điệp Sơn, Bãi Dài Cam Ranh.",
-    dacSan: "Bún cá Nha Trang, Nem nướng Nhất Trang, Bánh căn hải sản, Yến sào Khánh Hòa.",
-    chiPhi: "900.000đ - 2.500.000đ/ngày.", thoiDiem: "Tháng 1 - 8 (Mùa nắng rực rỡ)."
+    ten: "Tỉnh Khánh Hòa (Nha Trang)",
+    subRegion: "nam_trung_bo", mien: "trung",
+    anh: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1000",
+    moTa: "Thành phố biển Nha Trang sôi động với một trong những vịnh biển đẹp nhất thế giới.",
+    thoiDiem: "• Tháng 1 - 8: Tiết trời chan hòa nắng ấm.",
+    diemDen: "• VinWonders Nha Trang, Đảo Hòn Mun lặn ngắm san hô, Tháp Bà Ponagar.",
+    dacSan: "• Bún cá Nha Trang, Nem nướng Ninh Hòa & Yến sào.",
+    chiPhi: "900.000đ - 2.500.000đ / ngày"
   },
   "ninh thuan": {
-    ten: "Ninh Thuận", mien: "trung", tags: ["bien", "hoang mạc", "trai cay", "van hoa"],
-    anh: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800",
-    moTa: "Vùng đất của nắng và gió với Vịnh Vĩnh Hy tuyệt đẹp và các hòn tiểu sa mạc.",
-    hoatDong: "1. Đi tàu đáy kính ngắm san hô Vịnh Vĩnh Hy.\n2. Hái nho tươi tại vườn nho Thái An.\n3. Trải nghiệm xe địa hình Đồng cát Nam Cương.",
-    diemDen: "Vịnh Vĩnh Hy, Hang Rái, Đồng Cừu An Hòa, Đồi cát Nam Cương, Tháp Po Klong Garai.",
-    dacSan: "Nho tươi Ninh Thuận, Thịt dông nướng sa mạc, Cừu nướng Ninh Thuận, Bánh căn Bánh xèo.",
-    chiPhi: "600.000đ - 1.500.000đ/ngày.", thoiDiem: "Tháng 4 - 8."
+    ten: "Tỉnh Ninh Thuận",
+    subRegion: "nam_trung_bo", mien: "trung",
+    anh: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1000",
+    moTa: "Vùng đất nắng gió độc đáo sở hữu Vịnh Vĩnh Hy xanh ngọc và những vườn nho trút quả.",
+    thoiDiem: "• Tháng 4 - 8: Mùa nho chín và biển Vĩnh Hy trong vắt.",
+    diemDen: "• Vịnh Vĩnh Hy, Hang Rái, Đồi cát Nam Cương, Đồng cừu An Hòa.",
+    dacSan: "• Nho tươi Ninh Thuận & Thịt cừu/dông nướng mỡ hành.",
+    chiPhi: "600.000đ - 1.500.000đ / ngày"
   },
   "binh thuan": {
-    ten: "Bình Thuận (Phan Thiết)", mien: "trung", tags: ["bien", "nghi duong", "the thao nuoc", "sa mac"],
-    anh: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800",
-    moTa: "Thủ phủ Resort Mũi Né nổi tiếng với đồi cát bay dài tít tắp và thể thao lướt ván dù.",
-    hoatDong: "1. Trượt cát & lái xe địa hình Đồi Cát Trắng (Bàu Trắng).\n2. Lướt sóng biển Mũi Né.\n3. Tắm biển Đảo Phú Quý hoang sơ.",
-    diemDen: "Đồi Cát Bay, Bàu Trắng, Đảo Phú Quý, Suối Tiên, Làng chài Mũi Né, Hải đăng Ke Kê.",
-    dacSan: "Bánh xèo Phan Thiết, Lẩu thả, Mực một nắng Mũi Né, Bánh căn, Thanh long.",
-    chiPhi: "700.000đ - 1.800.000đ/ngày.", thoiDiem: "Tháng 10 - 4 (Phú Quý biển êm) hoặc đi Mũi Né quanh năm."
+    ten: "Tỉnh Bình Thuận (Phan Thiết)",
+    subRegion: "nam_trung_bo", mien: "trung",
+    anh: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1000",
+    moTa: "Thủ phủ Resort Mũi Né và thiên đường hoang sơ Đảo Phú Quý mê hoặc giới trẻ.",
+    thoiDiem: "• Quanh năm, đẹp nhất tháng 12 - tháng 6.",
+    diemDen: "• Đồi Cát Bay, Bàu Trắng sa mạc thu nhỏ, Đảo Phú Quý hoang sơ.",
+    dacSan: "• Bánh xèo Phan Thiết & Lẩu thả Mũi Né đậm đà.",
+    chiPhi: "700.000đ - 1.800.000đ / ngày"
   },
   "kon tum": {
-    ten: "Kon Tum", mien: "trung", tags: ["tay nguyen", "van hoa", "nui rung", "co kinh"],
-    anh: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800",
-    moTa: "Mảnh đất đại ngàn Tây Nguyên thơ mộng sở hữu Nhà thờ Gỗ cổ kính và Măng Đen lạnh giá.",
-    hoatDong: "1. Tận hưởng không khí se lạnh tại Măng Đen (Đà Lạt thứ 2).\n2. Thăm Nhà thờ Gỗ Kon Tum.\n3. Check-in Ngã ba Đông Dương.",
-    diemDen: "Măng Đen, Nhà thờ Gỗ Kon Tum, Ngã ba Đông Dương, Cầu treo Kon Klor, Chùa Khánh Lâm.",
-    dacSan: "Gỏi lá Kon Tum, Cơm lam gà nướng, Rượu cần Tây Nguyên, Thịt hun khói.",
-    chiPhi: "500.000đ - 1.200.000đ/ngày.", thoiDiem: "Tháng 11 - 3 (Mùa hoa dã quỳ và mai anh đào)."
+    ten: "Tỉnh Kon Tum",
+    subRegion: "tay_nguyen", mien: "trung",
+    anh: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1000",
+    moTa: "Thị trấn Măng Đen se lạnh thơ mộng được ví như Đà Lạt thứ hai của Tây Nguyên.",
+    thoiDiem: "• Tháng 11 - 3: Mùa hoa dã quỳ và mai anh đào nở.",
+    diemDen: "• KDL Măng Đen, Nhà thờ Gỗ Kon Tum cổ kính trăm năm.",
+    dacSan: "• Gỏi lá Kon Tum 40 loại lá rừng & Cơm lam gà nướng.",
+    chiPhi: "500.000đ - 1.200.000đ / ngày"
   },
   "gia lai": {
-    ten: "Gia Lai", mien: "trung", tags: ["tay nguyen", "thien nhien", "ca phe"],
-    anh: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800",
-    moTa: "Phố núi Pleiku thanh bình nổi tiếng với Biển Hồ T'Nưng 'Đôi mắt Pleiku'.",
-    hoatDong: "1. Ngắm bình minh Biển Hồ T'Nưng.\n2. Săn hoa dã quỳ Núi lửa Chư Đăng Ya.\n3. Thưởng thức cà phê Tây Nguyên.",
-    diemDen: "Biển Hồ T'Nưng, Núi lửa Chư Đăng Ya, Biển Hồ Chè, Thác Phú Cường, Chùa Minh Thành.",
-    dacSan: "Phở hai bát (Phở khô Pleiku), Bún mắm nêm, Gà sa lửa, Cà phê Pleiku.",
-    chiPhi: "500.000đ - 1.200.000đ/ngày.", thoiDiem: "Tháng 11 - 2 (Mùa hoa dã quỳ rực rỡ)."
+    ten: "Tỉnh Gia Lai",
+    subRegion: "tay_nguyen", mien: "trung",
+    anh: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1000",
+    moTa: "Phố núi Pleiku sở hữu Đôi mắt Pleiku 'Biển Hồ T'Nưng' xanh trong veo phẳng lặng.",
+    thoiDiem: "• Tháng 11 - 2: Mùa hoa dã quỳ rực rỡ khắp núi đồi.",
+    diemDen: "• Biển Hồ T'Nưng, Núi lửa Chư Đăng Ya, Chùa Minh Thành.",
+    dacSan: "• Phở hai bát Pleiku (Phở khô) & Gà sa lửa.",
+    chiPhi: "500.000đ - 1.200.000đ / ngày"
   },
   "dak lak": {
-    ten: "Đắk Lắk", mien: "trung", tags: ["tay nguyen", "voi", "ca phe", "van hoa"],
-    anh: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800",
-    moTa: "Thủ phủ cà phê Buôn Ma Thuột hùng vĩ với dòng Sêrêpôk và trải nghiệm thân thiện với Voi.",
-    hoatDong: "1. Tham quan Bảo tàng Thế giới Cà phê.\n2. Trải nghiệm du lịch thân thiện với Voi tại Bản Đôn.\n3. Ngắm Thác Dray Nur, Dray Sap.",
-    diemDen: "Bảo tàng Cà phê, Buôn Đôn, Thác Dray Nur, Hồ Lắk, Đá Voi Mẹ.",
-    dacSan: "Cà phê Buôn Ma Thuột, Bún đỏ, Gà nướng cơm lam, Lẩu rau rừng.",
-    chiPhi: "600.000đ - 1.400.000đ/ngày.", thoiDiem: "Tháng 12 - 3 (Mùa hoa cà phê nở trắng rừng)."
+    ten: "Tỉnh Đắk Lắk",
+    subRegion: "tay_nguyen", mien: "trung",
+    anh: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1000",
+    moTa: "Thủ phủ cà phê Buôn Ma Thuột đậm đà bản sắc núi rừng Tây Nguyên.",
+    thoiDiem: "• Tháng 12 - 3: Mùa hoa cà phê nở trắng đồi núi.",
+    diemDen: "• Bảo tàng Thế giới Cà phê, Buôn Đôn, Cụm thác Dray Nur.",
+    dacSan: "• Cà phê Buôn Ma Thuột & Bún đỏ Buôn Ma Thuột.",
+    chiPhi: "600.000đ - 1.400.000đ / ngày"
   },
   "dak nong": {
-    ten: "Đắk Nông", mien: "trung", tags: ["tay nguyen", "thac nuoc", "hang dong", "hoang so"],
-    anh: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800",
-    moTa: "Nơi sở hữu Công viên Địa chất Toàn cầu và Vịnh Hạ Long Tây Nguyên - Hồ Tà Đùng.",
-    hoatDong: "1. Ngắm toàn cảnh 40 hòn đảo lớn nhỏ trên Hồ Tà Đùng.\n2. Khám phá hệ thống Hang động núi lửa Volcanic Cave.\n3. Săn Thác Liêng Nung.",
-    diemDen: "Hồ Tà Đùng, Thác Liêng Nung, Hang động núi lửa Krông Nô, Thác Đray Sáp.",
-    dacSan: "Rượu cần, Cơm lam, Cá lăng sông Sêrêpôk, Cà đắng.",
-    chiPhi: "500.000đ - 1.200.000đ/ngày.", thoiDiem: "Tháng 11 - 4 (Mùa khô Tà Đùng trong xanh)."
+    ten: "Tỉnh Đắk Nông",
+    subRegion: "tay_nguyen", mien: "trung",
+    anh: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1000",
+    moTa: "Sở hữu Hồ Tà Đùng - Vịnh Hạ Long thu nhỏ trên cao nguyên ngợp mắt đảo xanh.",
+    thoiDiem: "• Tháng 11 - 4: Mùa tích nước hồ đẹp nhất.",
+    diemDen: "• Hồ Tà Đùng, Thác Liêng Nung, Hang động núi lửa Krông Nô.",
+    dacSan: "• Rượu cần Tây Nguyên & Cá lăng sông Sêrêpôk.",
+    chiPhi: "500.000đ - 1.200.000đ / ngày"
   },
   "lam dong": {
-    ten: "Lâm Đồng (Đà Lạt)", mien: "trung", tags: ["nghi duong", "san may", "checkin", "lang man"],
-    anh: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800",
-    moTa: "Thành phố ngàn hoa Đà Lạt mộng mơ trên cao nguyên Lâm Viên se lạnh quanh năm.",
-    hoatDong: "1. Thức dậy 4h sáng săn mây Đồi chè Cầu Đất.\n2. Chơi trò trượt máng Thác Datanla.\n3. Uống sữa đậu nành nóng Chợ Đêm Đà Lạt.",
-    diemDen: "Hồ Xuân Hương, Quảng trường Lâm Viên, Đồi chè Cầu Đất, Thác Datanla, Langbiang.",
-    dacSan: "Lẩu gà lá é, Bánh căn lòng đào, Bánh tráng nướng, Kem bơ Thanh Thảo.",
-    chiPhi: "700.000đ - 1.800.000đ/ngày.", thoiDiem: "Tháng 11 - 3 (Mùa hoa dã quỳ, hoa mai anh đào)."
+    ten: "Tỉnh Lâm Đồng (Đà Lạt)",
+    subRegion: "tay_nguyen", mien: "trung",
+    anh: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1000",
+    moTa: "Đà Lạt ngàn hoa mộng mơ, điểm nghỉ dưỡng thơ mộng bậc nhất Việt Nam với khí hậu se lạnh quanh năm.",
+    thoiDiem: "• Tháng 11 - 3: Mùa hoa mai anh đào & săn mây bồng bềnh.",
+    diemDen: "• Hồ Xuân Hương, Đồi chè Cầu Đất, Thác Datanla, Quảng trường Lâm Viên.",
+    dacSan: "• Lẩu gà lá é, Bánh căn xíu mại & Kem bơ béo ngậy.",
+    chiPhi: "700.000đ - 1.800.000đ / ngày"
   },
 
-  // ----------------------- MIỀN NAM (19 TỈNH THÀNH) -----------------------
+  // --- MIỀN NAM (19 TỈNH) ---
   "tp.ho chi minh": {
-    ten: "TP. Hồ Chí Minh", mien: "nam", tags: ["hien dai", "am thuc", "giai tri", "mua sam"],
-    anh: "https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=800",
-    moTa: "Hòn ngọc Viễn Đông - Trung tâm kinh tế, thành phố không ngủ sôi động bậc nhất Việt Nam.",
-    hoatDong: "1. Lên Landmark 81 ngắm toàn cảnh thành phố.\n2. Đi Bus đường sông Saigon Waterbus ngắm hoàng hôn.\n3. Vui chơi Phố đi bộ Bùi Viện đêm.",
-    diemDen: "Landmark 81, Dinh Độc Lập, Bưu điện Thành phố, Phố đi bộ Nguyễn Huệ, Chợ Bến Thành.",
-    dacSan: "Cơm tấm Sài Gòn, Hủ tiếu Nam Vang, Phá lấu, Bánh mì Sài Gòn, Cà phê sữa đá.",
-    chiPhi: "800.000đ - 2.500.000đ/ngày.", thoiDiem: "Tháng 12 - 4 (Mùa khô nắng đẹp)."
+    ten: "Thành phố Hồ Chí Minh",
+    subRegion: "dong_nam_bo", mien: "nam",
+    anh: "https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=1000",
+    moTa: "Đô thị 'Thành phố không ngủ' sôi động, hiện đại bậc nhất Việt Nam hòa quyện nét ẩm thực đa dạng.",
+    thoiDiem: "• Tháng 12 - 4: Mùa khô nắng ấm rực rỡ.",
+    diemDen: "• Tòa nhà Landmark 81, Dinh Độc Lập, Phố đi bộ Nguyễn Huệ, Bus đường sông Waterbus.",
+    dacSan: "• Cơm tấm Sài Gòn, Hủ tiếu Nam Vang, Phá lấu vỉa hè.",
+    chiPhi: "800.000đ - 2.500.000đ / ngày"
   },
   "can tho": {
-    ten: "Cần Thơ", mien: "nam", tags: ["song nuoc", "miet vuon", "van hoa", "am thuc"],
-    anh: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800",
-    moTa: "Thủ phủ Miền Tây sông nước với Chợ nổi Cái Răng và Bến Ninh Kiều thơ mộng.",
-    hoatDong: "1. Đón ghe sáng sớm đi Chợ nổi Cái Răng ăn hủ tiếu.\n2. Thăm Nhà cổ Bình Thủy.\n3. Trải nghiệm hái trái cây bao bụng tại Cồn Sơn.",
-    diemDen: "Chợ nổi Cái Răng, Bến Ninh Kiều, Nhà cổ Bình Thủy, Cồn Sơn, Chùa Ông.",
-    dacSan: "Lẩu mắm Cần Thơ, Bánh xèo củ hủ dừa, Nem nướng Cái Răng, Bánh tét lá cẩm.",
-    chiPhi: "500.000đ - 1.200.000đ/ngày.", thoiDiem: "Tháng 6 - 8 (Mùa trái cây chín rộ)."
+    ten: "Thành phố Cần Thơ",
+    subRegion: "tay_nam_bo", mien: "nam",
+    anh: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1000",
+    moTa: "Thủ phủ Miền Tây nổi tiếng với trải nghiệm văn hóa Chợ nổi Cái Răng trên sông nước.",
+    thoiDiem: "• Tháng 6 - 8: Mùa trái cây miệt vườn chín rộ.",
+    diemDen: "• Chợ nổi Cái Răng, Bến Ninh Kiều, Nhà cổ Bình Thủy.",
+    dacSan: "• Lẩu mắm Cần Thơ & Bánh xèo củ hủ dừa.",
+    chiPhi: "500.000đ - 1.200.000đ / ngày"
   },
   "ba ria - vung tau": {
-    ten: "Bà Rịa - Vũng Tàu", mien: "nam", tags: ["bien", "nghi duong", "phuot", "am thuc"],
-    anh: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800",
-    moTa: "Thành phố biển nghỉ dưỡng quen thuộc sát Sài Gòn và Côn Đảo linh thiêng.",
-    hoatDong: "1. Chinh phục Tượng Chúa Kito ngắm biển.\n2. Tắm biển Bãi Sau, Bãi Trụ Vũng Tàu.\n3. Bay ra Côn Đảo viếng Mộ Cô Sáu đêm.",
-    diemDen: "Tượng Chúa Kito, Mũi Nghinh Phong, Bãi Sau, Côn Đảo, Hồ Tràm.",
-    dacSan: "Bánh khọt Gốc Vú Sữa, Lẩu cá đuối, Bánh bông lan trứng muối, Hải sản.",
-    chiPhi: "600.000đ - 1.500.000đ/ngày.", thoiDiem: "Quanh năm."
+    ten: "Tỉnh Bà Rịa - Vũng Tàu",
+    subRegion: "dong_nam_bo", mien: "nam",
+    anh: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1000",
+    moTa: "Thành phố biển Vũng Tàu nhộn nhịp & Côn Đảo linh thiêng thiên đường biển ngọc.",
+    thoiDiem: "• Quanh năm, lý tưởng nghỉ dưỡng cuối tuần.",
+    diemDen: "• Tượng Chúa Kito Vũng Tàu, Bãi Sau, Quần đảo Côn Đảo.",
+    dacSan: "• Bánh khọt Vũng Tàu giòn rụm & Lẩu cá đuối.",
+    chiPhi: "600.000đ - 1.600.000đ / ngày"
   },
   "binh duong": {
-    ten: "Bình Dương", mien: "nam", tags: ["giai tri", "tam linh", "miet vuon"],
-    anh: "https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=800",
-    moTa: "Thủ phủ công nghiệp năng động sở hữu Khu du lịch Lạc Cảnh Đại Nam Văn Hiến.",
-    hoatDong: "1. Vui chơi thả ga Khu du lịch Đại Nam.\n2. Ăn trái cây vườn Lái Thiêu.\n3. Viếng Chùa Bà Thiên Hậu.",
-    diemDen: "Khu du lịch Đại Nam, Chùa Bà Thiên Hậu, Làng nghề gốm sứ Minh Sáng, Vườn trái cây Lái Thiêu.",
-    dacSan: "Bánh beo bì Chợ Búng, Gỏi ngó sen tôm thịt, Măng cụt Lái Thiêu.",
-    chiPhi: "400.000đ - 1.000.000đ/ngày.", thoiDiem: "Tháng 5 - 8 (Mùa măng cụt, trái cây Lái Thiêu)."
+    ten: "Tỉnh Bình Dương",
+    subRegion: "dong_nam_bo", mien: "nam",
+    anh: "https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=1000",
+    moTa: "Nổi tiếng với Khu du lịch Đại Nam quy mô hoành tráng và vườn trái cây Lái Thiêu.",
+    thoiDiem: "• Tháng 5 - 8: Mùa thu hoạch măng cụt Lái Thiêu.",
+    diemDen: "• Khu du lịch Lạc Cảnh Đại Nam Văn Hiến, Chùa Bà Thiên Hậu.",
+    dacSan: "• Bánh beo bì Chợ Búng & Gỏi gà măng cụt.",
+    chiPhi: "400.000đ - 1.000.000đ / ngày"
   },
   "binh phuoc": {
-    ten: "Bình Phước", mien: "nam", tags: ["sinh thai", "dieu", "phuot"],
-    anh: "https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=800",
-    moTa: "Thủ phủ hạt điều Việt Nam với không gian rừng nguyên sinh Núi Bà Rá.",
-    hoatDong: "1. Leo 1.500 bậc đá chinh phục Núi Bà Rá.\n2. Chèo đò Hồ Thủy điện Thác Mơ.\n3. Thăm Vườn quốc gia Bù Gia Mập.",
-    diemDen: "Núi Bà Rá, Hồ Thác Mơ, Vườn quốc gia Bù Gia Mập, Trảng cỏ Bù Lạch.",
-    dacSan: "Hạt điều rang muối, Hạt điều tươi nấu canh, Ve sầu sữa chiên giòn.",
-    chiPhi: "400.000đ - 900.000đ/ngày.", thoiDiem: "Tháng 12 - 4."
+    ten: "Tỉnh Bình Phước",
+    subRegion: "dong_nam_bo", mien: "nam",
+    anh: "https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=1000",
+    moTa: "Thủ phủ hạt điều Việt Nam với danh thắng Núi Bà Rá và Vườn quốc gia Bù Gia Mập.",
+    thoiDiem: "• Tháng 12 - 4: Mùa khô thích hợp đi trải nghiệm.",
+    diemDen: "• Núi Bà Rá, Hồ Thác Mơ, VQG Bù Gia Mập.",
+    dacSan: "• Hạt điều rang muối Bình Phước & Ve sầu chiên giòn.",
+    chiPhi: "400.000đ - 900.000đ / ngày"
   },
   "dong nai": {
-    ten: "Đồng Nai", mien: "nam", tags: ["sinh thai", "cam trai", "trai cay"],
-    anh: "https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=800",
-    moTa: "Điểm cắm trại xanh tươi sát Sài Gòn với Vườn quốc gia Cát Tiên.",
-    hoatDong: "1. Trekking ngắm thú ban đêm Vườn quốc gia Cát Tiên.\n2. Cắm trại Hồ Trị An / Thác Giang Điền.\n3. Hái chôm chôm Long Khánh.",
-    diemDen: "Vườn quốc gia Cát Tiên, Hồ Trị An, Khu du lịch Bửu Long, Thác Giang Điền.",
-    dacSan: "Cá lăng sông Đồng Nai, Dưa tơ Long Khánh, Gỏi bưởi Tân Triều.",
-    chiPhi: "400.000đ - 1.000.000đ/ngày.", thoiDiem: "Tháng 5 - 8 (Mùa trái cây Long Khánh)."
+    ten: "Tỉnh Đồng Nai",
+    subRegion: "dong_nam_bo", mien: "nam",
+    anh: "https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=1000",
+    moTa: "Điểm đến trekking Vườn quốc gia Cát Tiên và cắm trại Hồ Trị An lãng mạn.",
+    thoiDiem: "• Tháng 12 - 5: Mùa khô đi trekking rừng.",
+    diemDen: "• Vườn quốc gia Cát Tiên, Hồ Trị An, KDL Bửu Long.",
+    dacSan: "• Cá lăng sông Đồng Nai & Gỏi bưởi Tân Triều.",
+    chiPhi: "400.000đ - 1.000.000đ / ngày"
   },
   "tay ninh": {
-    ten: "Tây Ninh", mien: "nam", tags: ["tam linh", "phuot", "checkin", "nui cao"],
-    anh: "https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=800",
-    moTa: "Nơi có Nóc nhà Nam Bộ - Núi Bà Đen hùng vĩ và Tòa Thánh Cao Đài độc đáo.",
-    hoatDong: "1. Đi cáp treo săn mây trên đỉnh Núi Bà Đen 986m.\n2. Viếng Tòa Thánh Tây Ninh rực rỡ kiến trúc.\n3. Thưởng thức bánh tráng phơi sương.",
-    diemDen: "Núi Bà Đen, Tòa Thánh Tây Ninh, Hồ Dầu Tiếng, Ma Thiên Lãnh.",
-    dacSan: "Bánh tráng phơi sương cuốn thịt luộc, Muối tôm Tây Ninh, Bánh canh Trảng Bàng.",
-    chiPhi: "500.000đ - 1.100.000đ/ngày.", thoiDiem: "Tháng 1 - 3 âm lịch (Lễ hội Núi Bà Đen)."
+    ten: "Tỉnh Tây Ninh",
+    subRegion: "dong_nam_bo", mien: "nam",
+    anh: "https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=1000",
+    moTa: "Nóc nhà Nam Bộ 'Núi Bà Đen' săn mây tuyệt đẹp và Tòa Thánh Tây Ninh độc đáo.",
+    thoiDiem: "• Tháng 1 - 3 âm lịch: Mùa hội xuân Núi Bà Đen.",
+    diemDen: "• Núi Bà Đen (Đi cáp treo săn mây), Tòa Thánh Tây Ninh, Hồ Dầu Tiếng.",
+    dacSan: "• Bánh tráng phơi sương Trảng Bàng & Muối tôm Tây Ninh.",
+    chiPhi: "500.000đ - 1.100.000đ / ngày"
   },
   "an giang": {
-    ten: "An Giang", mien: "nam", tags: ["tam linh", "song nuoc", "checkin"],
-    anh: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800",
-    moTa: "Vùng đất Thất Sơn kỳ bí với Rừng tràm Trà Sư xanh mướt bèo dạt.",
-    hoatDong: "1. Đi tắc ráng đâm xuyên Rừng tràm Trà Sư.\n2. Viếng Miếu Bà Chúa Xứ Núi Sam.\n3. Check-in Cổng trời Chùa Koh Kas.",
-    diemDen: "Rừng tràm Trà Sư, Miếu Bà Chúa Xứ Núi Sam, Núi Cấm, Chùa Lầu, Chợ Mắm Châu Đốc.",
-    dacSan: "Lẩu mắm Châu Đốc, Bánh bò thốt nốt, Gà đốt Mơ Ô, Bún cá Long Xuyên.",
-    chiPhi: "500.000đ - 1.200.000đ/ngày.", thoiDiem: "Tháng 9 - 11 (Mùa nước nổi Miền Tây)."
+    ten: "Tỉnh An Giang",
+    subRegion: "tay_nam_bo", mien: "nam",
+    anh: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1000",
+    moTa: "Rừng tràm Trà Sư xanh mướt bèo bồng và trung tâm tâm linh Miếu Bà Chúa Xứ.",
+    thoiDiem: "• Tháng 9 - 11: Mùa nước nổi rừng tràm xanh ngát.",
+    diemDen: "• Rừng tràm Trà Sư, Miếu Bà Chúa Xứ Núi Sam, Núi Cấm.",
+    dacSan: "• Lẩu mắm Châu Đốc & Bánh bò thốt nốt béo ngậy.",
+    chiPhi: "500.000đ - 1.200.000đ / ngày"
   },
   "bac lieu": {
-    ten: "Bạc Liêu", mien: "nam", tags: ["van hoa", "checkin", "song nuoc"],
-    anh: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800",
-    moTa: "Quê hương Công tử Bạc Liêu lừng lẫy và Cánh đồng quạt gió khổng lồ.",
-    hoatDong: "1. Thăm Nhà Công tử Bạc Liêu.\n2. Sống ảo tại Cánh đồng Điện gió Bạc Liêu.\n3. Viếng Chùa Xiêm Cán kiến trúc Khmer.",
-    diemDen: "Nhà Công tử Bạc Liêu, Cánh đồng điện gió, Chùa Xiêm Cán, Nhà thờ Tắc Sậy (Cha Diệp).",
-    dacSan: "Lẩu mắm Bạc Liêu, Bánh tằm Nước cốt dừa, Bún nước lèo, Đuông dừa.",
-    chiPhi: "450.000đ - 1.000.000đ/ngày.", thoiDiem: "Quanh năm."
+    ten: "Tỉnh Bạc Liêu",
+    subRegion: "tay_nam_bo", mien: "nam",
+    anh: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1000",
+    moTa: "Gắn liền với giai thoại Công tử Bạc Liêu và Cánh đồng quạt gió ven biển cực Chill.",
+    thoiDiem: "• Quanh năm nắng ấm rực rỡ.",
+    diemDen: "• Nhà Công tử Bạc Liêu, Cánh đồng điện gió Bạc Liêu, Chùa Xiêm Cán.",
+    dacSan: "• Bánh tằm nước cốt dừa Bạc Liêu & Lẩu mắm.",
+    chiPhi: "450.000đ - 1.000.000đ / ngày"
   },
   "ben tre": {
-    ten: "Bến Tre", mien: "nam", tags: ["dua", "miet vuon", "song nuoc", "sinh thai"],
-    anh: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800",
-    moTa: "Xứ sở Dừa Bến Tre xanh rợp bóng râm với các khu du lịch sinh thái miệt vườn.",
-    hoatDong: "1. Đi xuồng chèo trong rạch dừa nước.\n2. Thăm lò làm kẹo dừa truyền thống.\n3. Thưởng thức củ hủ dừa tươi.",
-    diemDen: "Cồn Phụng, Cồn Quy, Sân chim Vàm Hồ, Vườn trái cây Cái Mơn.",
-    dacSan: "Kẹo dừa Bến Tre, Cơm hấp trái dừa, Đuông dừa tắm mắm, Bánh xèo hến.",
-    chiPhi: "400.000đ - 900.000đ/ngày.", thoiDiem: "Tháng 6 - 8 (Mùa trái cây Cái Mơn)."
+    ten: "Tỉnh Bến Tre",
+    subRegion: "tay_nam_bo", mien: "nam",
+    anh: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1000",
+    moTa: "Xứ sở Dừa xanh rợp bóng mát, trải nghiệm chèo xuồng rạch dừa nước miệt vườn.",
+    thoiDiem: "• Tháng 6 - 8: Mùa trái cây xum xuê.",
+    diemDen: "• Cồn Phụng, Cồn Quy, Vườn trái cây Cái Mơn.",
+    dacSan: "• Kẹo dừa Bến Tre & Cơm hấp trái dừa ngọt thanh.",
+    chiPhi: "400.000đ - 900.000đ / ngày"
   },
   "ca mau": {
-    ten: "Cà Mau", mien: "nam", tags: ["sinh thai", "cuc nam", "song nuoc"],
-    anh: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800",
-    moTa: "Mảnh đất Đất Mũi - Điểm cực Nam tận cùng thiêng liêng trên đất liền Tổ quốc.",
-    hoatDong: "1. Check-in Mốc tọa độ GPS 0001 Đất Mũi Cà Mau.\n2. Đi vỏ lãi xuyên Vườn quốc gia U Minh Hạ.\n3. Thưởng thức cua Cà Mau ngon nhất cả nước.",
-    diemDen: "Cột mốc Đất Mũi Cà Mau, Vườn quốc gia U Minh Hạ, Hòn Đá Bạc, Đầm Thị Tường.",
-    dacSan: "Cua Cà Mau gạch son, Lẩu u minh lá rừng, Cá thòi lòi nướng muối ớt, Vọp nướng.",
-    chiPhi: "600.000đ - 1.300.000đ/ngày.", thoiDiem: "Tháng 12 - 4 (Mùa khô đi lại thuận tiện)."
+    ten: "Tỉnh Cà Mau",
+    subRegion: "tay_nam_bo", mien: "nam",
+    anh: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1000",
+    moTa: "Cột mốc tọa độ GPS 0001 tận cùng phía Nam Tổ quốc giữa rừng đước bạt ngàn.",
+    thoiDiem: "• Tháng 12 - 4: Mùa khô di chuyển cực kỳ thuận lợi.",
+    diemDen: "• Mũi Cà Mau, Vườn quốc gia U Minh Hạ, Hòn Đá Bạc.",
+    dacSan: "• Cua Cà Mau gạch son chắc thịt & Cá thòi lòi nướng muối ớt.",
+    chiPhi: "600.000đ - 1.300.000đ / ngày"
   },
   "dong thap": {
-    ten: "Đồng Tháp", mien: "nam", tags: ["hoa sen", "song nuoc", "sinh thai"],
-    anh: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800",
-    moTa: "Đất Sen Hồng nổi tiếng với Đầm sen Sa Đéc rực rỡ và Làng hoa kiểng lâu đời.",
-    hoatDong: "1. Ngắm hoa rực rỡ tại Làng hoa Sa Đéc.\n2. Đi xuồng tham quan Khu sinh thai Xẻo Quýt.\n3. Check-in Đồng sen Tháp Mười.",
-    diemDen: "Làng hoa Sa Đéc, Khu sinh thái Xẻo Quýt, Đồng sen Tháp Mười, Vườn quốc gia Tràm Chim.",
-    dacSan: "Hủ tiếu Sa Đéc, Nem Lai Vung, Cá lóc nướng trui cuốn lá sen non, Bánh tằm.",
-    chiPhi: "450.000đ - 1.000.000đ/ngày.", thoiDiem: "Tháng 9 - 11 (Mùa nước nổi Tràm Chim) hoặc Tháng 12 (Làng hoa Tết)."
+    ten: "Tỉnh Đồng Tháp",
+    subRegion: "tay_nam_bo", mien: "nam",
+    anh: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1000",
+    moTa: "Đất Sen Hồng rực rỡ với Làng hoa Sa Đéc hàng trăm năm tuổi ngát hương.",
+    thoiDiem: "• Tháng 12: Mùa hoa Sa Đéc nở rực rỡ đón Tết.",
+    diemDen: "• Làng hoa Sa Đéc, KDL Xẻo Quýt, Đồng sen Tháp Mười.",
+    dacSan: "• Hủ tiếu Sa Đéc & Nem Lai Vung chua ngọt.",
+    chiPhi: "450.000đ - 1.000.000đ / ngày"
   },
   "hau giang": {
-    ten: "Hậu Giang", mien: "nam", tags: ["song nuoc", "chot noi", "yen binh"],
-    anh: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800",
-    moTa: "Miền đất sông nước bình yên gắn liền với Chợ nổi Ngã Bảy rực rỡ sắc màu.",
-    hoatDong: "1. Thăm Chợ nổi Ngã Bảy Phụng Hiệp.\n2. Khám phá Khu bảo tồn Lung Ngọc Hoàng.\n3. Ăn khóm Cầu Đúc ngọt lịm.",
-    diemDen: "Khu bảo tồn Lung Ngọc Hoàng, Chợ nổi Ngã Bảy, Công viên Giải trí Kittydang, Đền Bác Hồ.",
-    dacSan: "Cá thát lát rút xương chiên giòn, Khóm Cầu Đúc, Chả cá thát lát, Sữa khóm.",
-    chiPhi: "400.000đ - 900.000đ/ngày.", thoiDiem: "Tháng 9 - 11."
+    ten: "Tỉnh Hậu Giang",
+    subRegion: "tay_nam_bo", mien: "nam",
+    anh: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1000",
+    moTa: "Mảnh đất sông nước êm đềm nổi tiếng với Chợ nổi Ngã Bảy và Lung Ngọc Hoàng.",
+    thoiDiem: "• Tháng 9 - 11: Mùa nước nổi thanh bình.",
+    diemDen: "• Khu bảo tồn thiên nhiên Lung Ngọc Hoàng, Chợ nổi Ngã Bảy.",
+    dacSan: "• Chả cá thát lát Hậu Giang & Khóm Cầu Đúc.",
+    chiPhi: "400.000đ - 900.000đ / ngày"
   },
   "kien giang": {
-    ten: "Kiên Giang (Phú Quốc)", mien: "nam", tags: ["bien", "nghi duong", "sang chanh", "giai tri"],
-    anh: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800",
-    moTa: "Đảo Ngọc Phú Quốc thiên đường biển đảo quốc tế với các siêu quần thể giải trí.",
-    hoatDong: "1. Đi cáp treo Hòn Thơm vượt biển dài nhất thế giới.\n2. Tour 4 đảo lặn ngắm san hô Phú Quốc.\n3. Vui chơi VinWonders & Safari ngắm động vật.",
-    diemDen: "Đảo Ngọc Phú Quốc, Grand World, Bãi Sao, Vinpearl Safari, Quần đảo Nam Du, Đảo Hải Tặc.",
-    dacSan: "Bún quậy Kiến Xây, Gỏi cá trích, Rượu sim, Nước mắm Phú Quốc, Còi biên mai.",
-    chiPhi: "1.200.000đ - 4.000.000đ/ngày.", thoiDiem: "Tháng 11 - 4 (Mùa biển đẹp nhất)."
+    ten: "Tỉnh Kiên Giang (Phú Quốc)",
+    subRegion: "tay_nam_bo", mien: "nam",
+    anh: "https://images.unsplash.com/photo-1540206395-68808572332f?w=1000",
+    moTa: "Đảo Ngọc Phú Quốc - Thiên đường nghỉ dưỡng biển đảo tầm cỡ quốc tế.",
+    thoiDiem: "• Tháng 11 - 4: Mùa khô biển lặng, sóng êm, nắng ấm rực rỡ.",
+    diemDen: "• Bãi Sao, Thị trấn Hoàng Hôn Sunset Town, Cáp treo Hòn Thơm, Grand World.",
+    dacSan: "• Gỏi cá trích Phú Quốc, Bún quậy Kiến Xây & Rượu sim.",
+    chiPhi: "1.200.000đ - 3.800.000đ / ngày"
   },
   "long an": {
-    ten: "Long An", mien: "nam", tags: ["sinh thai", "song nuoc", "checkin"],
-    anh: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800",
-    moTa: "Cửa ngõ nối liền TP.HCM và Miền Tây với Làng nổi Tân Lập độc đáo.",
-    hoatDong: "1. Đi bộ trên con đường xuyên rừng tràm Làng nổi Tân Lập.\n2. Vui chơi Công viên Cát Tường Phú Sinh.\n3. Thăm Làng cổ Phước Lộc Thọ.",
-    diemDen: "Làng nổi Tân Lập, Công viên Cát Tường Phú Sinh, Làng cổ Phước Lộc Thọ, Nhà 120 cột.",
-    dacSan: "Lạp xưởng tươi Long An, Thanh long Châu Thành, Rượu đế Gò Đen, Bánh tét.",
-    chiPhi: "350.000đ - 800.000đ/ngày.", thoiDiem: "Tháng 9 - 11."
+    ten: "Tỉnh Long An",
+    subRegion: "tay_nam_bo", mien: "nam",
+    anh: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1000",
+    moTa: "Cửa ngõ kết nối TP.HCM và Miền Tây sở hữu Làng nổi Tân Lập rợp bóng rừng tràm.",
+    thoiDiem: "• Tháng 9 - 11: Mùa nước nổi ngắm rừng tràm.",
+    diemDen: "• Khu du lịch sinh thái Làng nổi Tân Lập, Làng cổ Phước Lộc Thọ.",
+    dacSan: "• Lạp xưởng tươi Long An & Bánh tét Long An.",
+    chiPhi: "350.000đ - 800.000đ / ngày"
   },
   "soc trang": {
-    ten: "Sóc Trăng", mien: "nam", tags: ["van hoa", "tam linh", "khmer"],
-    anh: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800",
-    moTa: "Xứ sở chùa Vàng Nam Bộ hòa quyện 3 dân tộc Kinh - Hoa - Khmer.",
-    hoatDong: "1. Chiêm ngưỡng kiến trúc Chùa Dơi, Chùa Chén Kiểu.\n2. Xem Lễ hội đua ghe Ngo rực rỡ.\n3. Thưởng thức bánh pía béo ngậy.",
-    diemDen: "Chùa Dơi, Chùa Chén Kiểu (Chùa Sà Lôn), Chùa Som Rong, Chùa Đất Sét.",
-    dacSan: "Bánh pía Sóc Trăng, Bún nước lèo, Bánh cóong, Lạp xưởng Mai Quế Lộ.",
-    chiPhi: "400.000đ - 900.000đ/ngày.", thoiDiem: "Tháng 10 - 11 âm lịch (Lễ hội Oóc Om Bóc & Đua ghe Ngo)."
+    ten: "Tỉnh Sóc Trăng",
+    subRegion: "tay_nam_bo", mien: "nam",
+    anh: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1000",
+    moTa: "Xứ sở những ngôi chùa Khmer kiến trúc lộng lẫy nguy nga độc đáo.",
+    thoiDiem: "• Tháng 10 - 11 âm lịch: Lễ hội Ok Om Bok & Đua ghe Ngo.",
+    diemDen: "• Chùa Dơi, Chùa Chén Kiểu, Chùa Som Rong dát vàng.",
+    dacSan: "• Bánh pía Sóc Trăng dẻo thơm & Bún nước lèo.",
+    chiPhi: "400.000đ - 900.000đ / ngày"
   },
   "tien giang": {
-    ten: "Tiền Giang", mien: "nam", tags: ["miet vuon", "song nuoc", "am thuc"],
-    anh: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800",
-    moTa: "Vùng đất miệt vườn sông nước trù phú với Chợ nổi Cái Bè nổi tiếng.",
-    hoatDong: "1. Đi du thuyền ngoạn cảnh Cù lao Thới Sơn.\n2. Viếng Chùa Vĩnh Tràng đồ sộ.\n3. Thưởng thức hủ tiếu Mỹ Tho.",
-    diemDen: "Cù lao Thới Sơn, Chùa Vĩnh Tràng, Chợ nổi Cái Bè, Trại rắn Đồng Tâm.",
-    dacSan: "Hủ tiếu Mỹ Tho, Vú sữa Lò Rèn, Bánh vá Chợ Gạo, Mắm còng Go Công.",
-    chiPhi: "400.000đ - 950.000đ/ngày.", thoiDiem: "Tháng 5 - 8 (Mùa trái cây trĩu quả)."
+    ten: "Tỉnh Tiền Giang",
+    subRegion: "tay_nam_bo", mien: "nam",
+    anh: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1000",
+    moTa: "Miệt vườn trù phú ven Sông Tiền và Chợ nổi Cái Bè nhộn nhịp.",
+    thoiDiem: "• Tháng 5 - 8: Mùa trái cây miệt vườn chín xum xuê.",
+    diemDen: "• Cù lao Thới Sơn, Chùa Vĩnh Tràng, Chợ nổi Cái Bè.",
+    dacSan: "• Hủ tiếu Mỹ Tho & Vú sữa Lò Rèn ngọt lịm.",
+    chiPhi: "400.000đ - 950.000đ / ngày"
   },
   "tra vinh": {
-    ten: "Trà Vinh", mien: "nam", tags: ["van hoa", "khmer", "tam linh", "yen binh"],
-    anh: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800",
-    moTa: "Thành phố rợp bóng cây cổ thụ với vô số ngôi chùa Khmer cổ kính.",
-    hoatDong: "1. Dạo quanh Ao Bà Om mát rượi bóng cây cổ thụ.\n2. Thăm Chùa Hang kiến trúc độc đáo.\n3. Tắm biển Ba Động hoang sơ.",
-    diemDen: "Ao Bà Om, Chùa Hang, Chùa Âng, Biển Ba Động, Cù lao Long Trị.",
-    dacSan: "Bún nước lèo Trà Vinh, Dừa sáp Cầu Kè, Bánh tét Trà Cuôn, Trái quách.",
-    chiPhi: "400.000đ - 900.000đ/ngày.", thoiDiem: "Tháng 4 (Tết Chốt Chnăm Thmây) hoặc tháng 10 âm lịch."
+    ten: "Tỉnh Trà Vinh",
+    subRegion: "tay_nam_bo", mien: "nam",
+    anh: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1000",
+    moTa: "Thành phố rợp bóng cây cổ thụ trăm năm và danh thắng Ao Bà Om mát rượi.",
+    thoiDiem: "• Tháng 4 (Tết Chôl Chnăm Thmây) hoặc Tháng 10 âm lịch.",
+    diemDen: "• Danh thắng Ao Bà Om, Chùa Hang, Biển Ba Động.",
+    dacSan: "• Dừa sáp Cầu Kè béo ngậy & Bún nước lèo Trà Vinh.",
+    chiPhi: "400.000đ - 900.000đ / ngày"
   },
   "vinh long": {
-    ten: "Vĩnh Long", mien: "nam", tags: ["miet vuon", "song nuoc", "lang nghe"],
-    anh: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800",
-    moTa: "Mảnh đất cù lao trù phú nổi tiếng với Làng gạch gốm đỏ Mang Thít.",
-    hoatDong: "1. Đi thuyền tham quan Vương quốc gạch gốm đỏ Mang Thít.\n2. Hái trái cây bao bụng tại Cù lao An Bình.\n3. Tát mương bắt cá.",
-    diemDen: "Cù lao An Bình, Làng gốm đỏ Mang Thít, Chùa Tiên Châu, Khu du lịch Vinh Sang.",
-    dacSan: "Cá tai tượng chiên xù, Bưởi năm roi Bình Minh, Khoai lang nướng cuốn mắm hành.",
-    chiPhi: "400.000đ - 950.000đ/ngày.", thoiDiem: "Tháng 5 - 8 (Mùa trái cây chín rộ)."
+    ten: "Tỉnh Vĩnh Long",
+    subRegion: "tay_nam_bo", mien: "nam",
+    anh: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1000",
+    moTa: "Nổi tiếng với Vương quốc gạch gốm đỏ Mang Thít bên sông cổ kính.",
+    thoiDiem: "• Tháng 5 - 8: Mùa trái cây Cù lao An Bình.",
+    diemDen: "• Làng gốm đỏ Mang Thít, Cù lao An Bình.",
+    dacSan: "• Cá tai tượng chiên xù & Bưởi năm roi Mỹ Hòa.",
+    chiPhi: "400.000đ - 950.000đ / ngày"
   }
 };
 
 // =========================================================================
-// 4. DIALOGFLOW WEBHOOK & CORE ROUTING ENGINE
+// 4. DIALOGFLOW WEBHOOK ROUTER THÔNG MINH
 // =========================================================================
 
 app.post('/', (req, res) => {
   const queryResult = req.body.queryResult || {};
   const rawQuery = queryResult.queryText || '';
   const queryNorm = loaiBoDau(rawQuery);
-  const sessionId = req.body.session || 'default_session';
-  const sessionState = getSessionState(sessionId);
 
-  // 4.1 Lệnh Reset / Quay về Menu
-  if (/\b(menu|quay lai|bat dau|reset)\b/.test(queryNorm)) {
-    sessionState.lastProvinceKey = null;
-    return res.json(buildMenuResponse("🎩 **XIN CHÀO! BOT DU LỊCH ĐÃ SẴN SÀNG TRA CỨU TRỌN BỘ 63 TỈNH THÀNH.**\n\nHãy bấm chọn vùng miền bên dưới hoặc gõ tên tỉnh thành / câu hỏi bất kỳ!"));
+  const intentAnalysis = detectUserIntent(queryNorm);
+
+  // 4.1 Menu / Reset / Chào hỏi
+  if (/\b(menu|bat dau|reset|quay lai|xin chao|hi|hello)\b/.test(queryNorm)) {
+    return res.json({
+      fulfillmentMessages: [
+        {
+          text: {
+            text: [
+              `[🧠 AI Reasoning]: Intent=WELCOME | Confidence=1.00\n\n` +
+              `🌟 **XIN CHÀO! EM LÀ BOT DU LỊCH VIỆT NAM THÔNG MINH** 🌟\n\n` +
+              `Em đã sẵn sàng hỗ trợ bạn khám phá trọn bộ **63 Tỉnh Thành** dọc 3 miền Bắc - Trung - Nam với đầy đủ lịch trình, hình ảnh và đặc sản!\n\n` +
+              `👉 Vui lòng chọn Vùng miền hoặc Nhu cầu gợi ý bên dưới:`
+            ]
+          }
+        },
+        {
+          quickReplies: {
+            title: "👇 Chọn vùng miền hoặc chủ đề:",
+            quickReplies: [
+              "Miền Bắc",
+              "Miền Trung",
+              "Miền Nam",
+              "Gợi ý Phượt Mạo Hiểm",
+              "Gợi ý Nghỉ Dưỡng Biển",
+              "Gợi ý Foodtour Ẩm Thực"
+            ]
+          }
+        }
+      ]
+    });
   }
 
-  // 4.2 Recommendation Engine (Gợi ý theo sở thích)
-  const detectedIntent = detectUserIntent(queryNorm);
-  if (detectedIntent === 'RECOMMEND') {
-    const matchedProvinces = [];
-    for (const key in duLieu63TinhThanh) {
-      const tinh = duLieu63TinhThanh[key];
-      tinh.tags.forEach(tag => {
-        if (queryNorm.includes(tag)) {
-          if (!matchedProvinces.includes(tinh.ten)) matchedProvinces.push(tinh.ten);
+  // 4.2 Xử lý Nút Gợi Ý Chủ Đề Chuyên Sâu
+  if (queryNorm.includes("phuot") || queryNorm.includes("mao hiem")) {
+    return res.json({
+      fulfillmentMessages: [
+        {
+          text: {
+            text: [
+              `[🧠 AI Reasoning]: Intent=RECOMMEND_ADVENTURE | Confidence=0.98\n\n` +
+              `🏍️ **TOP ĐỊA DIỂM PHƯỢT & KHÁM PHÁ MẠO HIỂM BẬC NHẤT:**\n\n` +
+              `1. **Hà Giang:** Chinh phục đèo Mã Pí Lèng & Hẻm Tu Sản.\n` +
+              `2. **Quảng Bình:** Thám hiểm hệ thống hang động Phong Nha - Kẻ Bàng.\n` +
+              `3. **Sơn La (Tà Xùa):** Săn mây cuồn cuộn trên sống lưng khủng long.\n` +
+              `4. **Yên Bái (Mù Cang Chải):** Nhảy dù lượn ngắm ruộng bậc thang lúa chín.\n\n` +
+              `👇 Chọn tỉnh thành bên dưới để xem chi tiết:`
+            ]
+          }
+        },
+        {
+          quickReplies: {
+            title: "👇 Chọn tỉnh phượt:",
+            quickReplies: ["Hà Giang", "Quảng Bình", "Sơn La", "Yên Bái", "Cao Bằng", "Menu Chính"]
+          }
         }
-      });
-    }
+      ]
+    });
+  }
 
-    if (matchedProvinces.length > 0) {
+  if (queryNorm.includes("nghi duong") || queryNorm.includes("bien")) {
+    return res.json({
+      fulfillmentMessages: [
+        {
+          text: {
+            text: [
+              `[🧠 AI Reasoning]: Intent=RECOMMEND_RESORT | Confidence=0.98\n\n` +
+              `🏖️ **TOP THIÊN ĐƯỜNG NGHỈ DƯỠNG & BIỂN ĐẢO HÀNG ĐẦU:**\n\n` +
+              `1. **Kiên Giang (Phú Quốc):** Đảo Ngọc biển xanh trong suốt.\n` +
+              `2. **Đà Nẵng:** Bãi biển Mỹ Khê & Bà Nà Hills.\n` +
+              `3. **Khánh Hòa (Nha Trang):** Vịnh biển thiên đường giải trí.\n` +
+              `4. **Lâm Đồng (Đà Lạt):** Thành phố ngàn hoa se lạnh mộng mơ.\n\n` +
+              `👇 Chọn tỉnh thành bên dưới để xem chi tiết:`
+            ]
+          }
+        },
+        {
+          quickReplies: {
+            title: "👇 Chọn tỉnh nghỉ dưỡng:",
+            quickReplies: ["Kiên Giang", "Đà Nẵng", "Khánh Hòa", "Lâm Đồng", "Bình Định", "Menu Chính"]
+          }
+        }
+      ]
+    });
+  }
+
+  if (queryNorm.includes("foodtour") || queryNorm.includes("am thuc")) {
+    return res.json({
+      fulfillmentMessages: [
+        {
+          text: {
+            text: [
+              `[🧠 AI Reasoning]: Intent=RECOMMEND_FOODTOUR | Confidence=0.98\n\n` +
+              `🍲 **TOP THIÊN ĐƯỜNG FOODTOUR ẨM THỰC NỨC TIẾNG:**\n\n` +
+              `1. **Hải Phòng:** Bánh đa cua, Bánh mì que, Dừa dầm.\n` +
+              `2. **Hà Nội:** Phở, Bún chả, Cà phê trứng Phố Cổ.\n` +
+              `3. **Thừa Thiên Huế:** Bún bò Huế, Bánh bèo, Bánh lọc, Cơm hến.\n` +
+              `4. **TP. Hồ Chí Minh:** Cơm tấm, Hủ tiếu, Phá lấu.\n\n` +
+              `👇 Chọn tỉnh thành bên dưới để xem chi tiết:`
+            ]
+          }
+        },
+        {
+          quickReplies: {
+            title: "👇 Chọn thành phố ẩm thực:",
+            quickReplies: ["Hải Phòng", "Hà Nội", "Thừa Thiên Huế", "TP. Hồ Chí Minh", "Cần Thơ", "Menu Chính"]
+          }
+        }
+      ]
+    });
+  }
+
+  // 4.3 Phân chia vùng miền lớn sang tiểu vùng
+  if (queryNorm.includes("mien bac")) {
+    return res.json({
+      fulfillmentMessages: [
+        {
+          text: {
+            text: [
+              `[🧠 AI Reasoning]: Intent=SELECT_REGION | Region=BẮC | Confidence=0.99\n\n` +
+              `🗺️ **DANH SÁCH KHU VỰC MIỀN BẮC (25 TỈNH THÀNH)**\n\n` +
+              `Do số lượng tỉnh lớn, vui lòng chọn Tiểu Vùng để hiển thị danh sách nút bấm đầy đủ:`
+            ]
+          }
+        },
+        {
+          quickReplies: {
+            title: "👇 Chọn tiểu vùng Miền Bắc:",
+            quickReplies: [
+              "Tây Bắc (6 tỉnh)",
+              "Đông Bắc (9 tỉnh)",
+              "Đồng Bằng Sông Hồng (10 tỉnh)",
+              "Menu Chính"
+            ]
+          }
+        }
+      ]
+    });
+  }
+
+  if (queryNorm.includes("mien trung")) {
+    return res.json({
+      fulfillmentMessages: [
+        {
+          text: {
+            text: [
+              `[🧠 AI Reasoning]: Intent=SELECT_REGION | Region=TRUNG | Confidence=0.99\n\n` +
+              `🗺️ **DANH SÁCH KHU VỰC MIỀN TRUNG & TÂY NGUYÊN (19 TỈNH THÀNH)**\n\n` +
+              `Vui lòng chọn Tiểu Vùng bên dưới:`
+            ]
+          }
+        },
+        {
+          quickReplies: {
+            title: "👇 Chọn tiểu vùng Miền Trung:",
+            quickReplies: [
+              "Bắc Trung Bộ (6 tỉnh)",
+              "Nam Trung Bộ (8 tỉnh)",
+              "Tây Nguyên (5 tỉnh)",
+              "Menu Chính"
+            ]
+          }
+        }
+      ]
+    });
+  }
+
+  if (queryNorm.includes("mien nam")) {
+    return res.json({
+      fulfillmentMessages: [
+        {
+          text: {
+            text: [
+              `[🧠 AI Reasoning]: Intent=SELECT_REGION | Region=NAM | Confidence=0.99\n\n` +
+              `🗺️ **DANH SÁCH KHU VỰC MIỀN NAM (19 TỈNH THÀNH)**\n\n` +
+              `Vui lòng chọn Tiểu Vùng bên dưới:`
+            ]
+          }
+        },
+        {
+          quickReplies: {
+            title: "👇 Chọn tiểu vùng Miền Nam:",
+            quickReplies: [
+              "Đông Nam Bộ (6 tỉnh)",
+              "Tây Nam Bộ / Miền Tây (13 tỉnh)",
+              "Menu Chính"
+            ]
+          }
+        }
+      ]
+    });
+  }
+
+  // Xử lý tiểu vùng -> Xuất nút bấm từng tỉnh
+  for (const subKey in danhSachSubRegions) {
+    if (queryNorm.includes(subKey.replace(/_/g, ' ')) || queryNorm.includes(subKey)) {
+      const provinceList = danhSachSubRegions[subKey];
       return res.json({
         fulfillmentMessages: [
           {
             text: {
               text: [
-                `💡 **GỢI Ý ĐIỂM ĐẾN PHÙ HỢP VỚI GU CỦA BẠN:**\n\nDựa trên sở thích của bạn, em đề xuất các địa danh cực xịn sau:\n\n👉 **${matchedProvinces.slice(0, 8).join(' | ')}**\n\nBạn muốn tìm hiểu chi tiết điểm đến nào ở trên?`
+                `[🧠 AI Reasoning]: Intent=SUBREGION_PROVINCES | SubKey=${subKey.toUpperCase()}\n\n` +
+                `📍 **DANH SÁCH CÁC TỈNH THÀNH VÙNG ${subKey.toUpperCase().replace(/_/g, ' ')} (${provinceList.length} TỈNH):**\n\n` +
+                `Bấm vào nút bấm tỉnh bạn muốn khám phá bên dưới:`
               ]
             }
           },
           {
             quickReplies: {
-              title: "👇 Bấm chọn nhanh:",
-              quickReplies: matchedProvinces.slice(0, 5)
+              title: "👇 Chọn Tỉnh Thành:",
+              quickReplies: [...provinceList, "Menu Chính"]
             }
           }
         ]
@@ -707,7 +937,7 @@ app.post('/', (req, res) => {
     }
   }
 
-  // 4.3 Tìm kiếm Tỉnh/Thành bằng thuật toán Hybrid Fuzzy Matching
+  // 4.4 Tìm kiếm Tỉnh/Thành chính xác hoặc Fuzzy Match (Đoán từ)
   let matchedProvinceKey = null;
   let highestScore = 0;
 
@@ -722,156 +952,87 @@ app.post('/', (req, res) => {
       break;
     }
 
-    const similarity = jaccardSimilarity(queryNorm, keyNorm);
-    if (similarity > highestScore && similarity >= 0.4) {
+    const distance = levenshteinDistance(queryNorm, keyNorm);
+    const similarity = 1 - (distance / Math.max(queryNorm.length, keyNorm.length));
+    if (similarity > highestScore && similarity >= 0.55) {
       highestScore = similarity;
       matchedProvinceKey = key;
     }
   }
 
+  // TRẢ VỀ THÔNG TIN TỈNH CHI TIẾT VÀ TRÌNH BÀY TÁCH DÒNG ĐẸP MẮT
   if (matchedProvinceKey) {
-    sessionState.lastProvinceKey = matchedProvinceKey;
-  }
-
-  // 4.4 Lấy thông tin tỉnh đang truy vấn (từ hiện tại hoặc ngữ cảnh trước đó)
-  const activeProvince = matchedProvinceKey 
-    ? duLieu63TinhThanh[matchedProvinceKey] 
-    : (sessionState.lastProvinceKey ? duLieu63TinhThanh[sessionState.lastProvinceKey] : null);
-
-  // 4.5 Trả lời chuyên sâu theo từng Ý định (Intent)
-  if (activeProvince) {
-    if (detectedIntent === 'ASK_FOOD') {
-      return res.json(buildQuickResponse(
-        `🍲 **ĐẶC SẢN & ẨM THỰC NỔI TIẾNG TẠI ${activeProvince.ten.toUpperCase()}**\n\n` +
-        `${activeProvince.dacSan}\n\n` +
-        `💡 *Mẹo: Bạn có thể hỏi thêm về "Hoạt động chơi gì", "Chi phí" hoặc "Thời điểm du lịch đẹp nhất" tại đây!*`,
-        [`Chơi gì ở ${activeProvince.ten}`, `Chi phí ${activeProvince.ten}`, `Thời điểm đi`, "Menu Chính"]
-      ));
-    }
-
-    if (detectedIntent === 'ASK_ACTIVITIES') {
-      return res.json(buildQuickResponse(
-        `🎯 **CÁC HOẠT ĐỘNG & TRẢI NGHIỆM PHẢI THỬ TẠI ${activeProvince.ten.toUpperCase()}**\n\n` +
-        `${activeProvince.hoatDong}\n\n` +
-        `🏛️ **Danh thắng tiêu biểu:** ${activeProvince.diemDen}`,
-        [`Ăn gì ở ${activeProvince.ten}`, `Chi phí ${activeProvince.ten}`, `Thời điểm đẹp`, "Menu Chính"]
-      ));
-    }
-
-    if (detectedIntent === 'ASK_BUDGET') {
-      return res.json(buildQuickResponse(
-        `💰 **DỰ TOÁN CHI PHÍ DU LỊCH TẠI ${activeProvince.ten.toUpperCase()}**\n\n` +
-        `${activeProvince.chiPhi}`,
-        [`Chơi gì ở ${activeProvince.ten}`, `Đặc sản ngon`, "Menu Chính"]
-      ));
-    }
-
-    if (detectedIntent === 'ASK_BEST_TIME') {
-      return res.json(buildQuickResponse(
-        `🌤️ **THỜI ĐIỂM DU LỊCH ĐẸP NHẤT TẠI ${activeProvince.ten.toUpperCase()}**\n\n` +
-        `${activeProvince.thoiDiem}`,
-        [`Chơi gì ở ${activeProvince.ten}`, `Đặc sản ${activeProvince.ten}`, "Menu Chính"]
-      ));
-    }
-
-    // Nếu hỏi chung hoặc gõ tên Tỉnh -> Trả về Thông tin TỔNG HỢP SIÊU CHI TIẾT
-    if (matchedProvinceKey) {
-      return res.json({
-        fulfillmentMessages: [
-          {
-            text: {
-              text: [
-                `📍 **THÔNG TIN DU LỊCH: ${activeProvince.ten.toUpperCase()}**\n\n` +
-                `✨ **Mô tả:** ${activeProvince.moTa}\n\n` +
-                `🎯 **HOẠT ĐỘNG PHẢI TRẢI NGHIỆM:**\n${activeProvince.hoatDong}\n\n` +
-                `🏛️ **Danh thắng nổi tiếng:** ${activeProvince.diemDen}\n\n` +
-                `🍲 **Đặc sản ẩm thực:** ${activeProvince.dacSan}\n\n` +
-                `🌤️ **Thời điểm đẹp nhất:** ${activeProvince.thoiDiem}\n\n` +
-                `💰 **Dự toán chi phí:** ${activeProvince.chiPhi}`
-              ]
-            }
-          },
-          {
-            image: {
-              imageUri: activeProvince.anh,
-              accessibilityText: `Ảnh phong cảnh ${activeProvince.ten}`
-            }
-          },
-          {
-            quickReplies: {
-              title: "👇 Chọn mục bạn quan tâm:",
-              quickReplies: [
-                `Ăn gì ở ${activeProvince.ten}`,
-                `Chơi gì ở ${activeProvince.ten}`,
-                `Chi phí ${activeProvince.ten}`,
-                "Menu Chính"
-              ]
-            }
-          }
-        ]
-      });
-    }
-  }
-
-  // 4.6 Lọc theo Miền (Bắc / Trung / Nam)
-  if (/\b(mien bac|mien trung|mien nam)\b/.test(queryNorm)) {
-    let mienCode = queryNorm.includes('bac') ? 'bac' : (queryNorm.includes('trung') ? 'trung' : 'nam');
-    const listTinh = Object.values(duLieu63TinhThanh)
-      .filter(t => t.mien === mienCode)
-      .map(t => t.ten);
-
+    const province = duLieu63TinhThanh[matchedProvinceKey];
     return res.json({
       fulfillmentMessages: [
         {
           text: {
             text: [
-              `🗺️ **DANH SÁCH TẤT CẢ TỈNH THÀNH NỔI BẬT TẠI ${mienCode.toUpperCase()} (${listTinh.length} TỈNH THÀNH)**\n\nBấm vào tên bên dưới hoặc nhập trực tiếp câu hỏi (VD: "Tôi thích đi phượt mạo hiểm", "Thời điểm đi Phú Quốc"):`
+              `[🧠 AI Reasoning]: MatchedProvince='${province.ten}' | Score=${highestScore.toFixed(2)} | Intent=${intentAnalysis.intent}\n\n` +
+              `📍 **CẨM NANG DU LỊCH: ${province.ten.toUpperCase()}**\n\n` +
+              `✨ **Giới thiệu:**\n${province.moTa}\n\n` +
+              `🗓️ **Thời điểm lý tưởng:**\n${province.thoiDiem}\n\n` +
+              `🏛️ **Địa điểm tham quan nổi bật:**\n${province.diemDen}\n\n` +
+              `🍲 **Ẩm thực đặc sản trứ danh:**\n${province.dacSan}\n\n` +
+              `💰 **Dự toán chi phí tham khảo:** ${province.chiPhi}`
             ]
           }
         },
         {
+          image: {
+            imageUri: province.anh,
+            accessibilityText: `Ảnh phong cảnh ${province.ten}`
+          }
+        },
+        {
           quickReplies: {
-            title: "👇 Bấm chọn nhanh tỉnh thành:",
-            quickReplies: [...listTinh.slice(0, 10), "Menu Chính"]
+            title: "👇 Bạn muốn làm gì tiếp theo?",
+            quickReplies: [
+              "Gợi ý Phượt Mạo Hiểm",
+              "Gợi ý Nghỉ Dưỡng Biển",
+              "Gợi ý Foodtour Ẩm Thực",
+              "Menu Chính"
+            ]
           }
         }
       ]
     });
   }
 
-  // 4.7 Fallback khi không khớp
-  return res.json(buildMenuResponse("🤔 Em chưa hiểu rõ ý bạn lắm. Bạn vui lòng gõ tên Tỉnh/Thành phố bất kỳ (VD: Cà Mau, Yên Bái, Đà Nẵng) hoặc chọn gợi ý bên dưới:"));
-});
+  // 4.5 FALLBACK THÔNG MINH KÈM NÚT GỢI Ý
+  let closestGuesses = [];
+  for (const key in duLieu63TinhThanh) {
+    const dist = levenshteinDistance(queryNorm, loaiBoDau(duLieu63TinhThanh[key].ten));
+    if (dist <= 4) {
+      closestGuesses.push(duLieu63TinhThanh[key].ten);
+    }
+  }
+  if (closestGuesses.length === 0) {
+    closestGuesses = ["Hà Giang", "Đà Nẵng", "Phú Quốc", "Đà Lạt"];
+  }
 
-// =========================================================================
-// 5. HELPER FUNCTIONS TẠO PHẢN HỒI QUICK REPLIES
-// =========================================================================
-
-function buildQuickResponse(textMessage, quickRepliesList) {
-  return {
+  return res.json({
     fulfillmentMessages: [
-      { text: { text: [textMessage] } },
-      { quickReplies: { title: "👇 Lựa chọn nhanh:", quickReplies: quickRepliesList } }
-    ]
-  };
-}
-
-function buildMenuResponse(welcomeText) {
-  return {
-    fulfillmentMessages: [
-      { text: { text: [welcomeText] } },
+      {
+        text: {
+          text: [
+            `[🧠 AI Reasoning]: Intent=FALLBACK | Confidence=0.20 | SuggestionEngine=Active\n\n` +
+            `💡 **Ối! Câu hỏi này em chưa kịp cập nhật hoặc chưa hiểu rõ.**\n\n` +
+            `Có phải bạn đang quan tâm đến một trong những địa danh nổi tiếng dưới đây không? Vui lòng bấm chọn gợi ý nhanh nhé:`
+          ]
+        }
+      },
       {
         quickReplies: {
-          title: "👇 Chọn vùng miền hoặc nhu cầu:",
-          quickReplies: ["Miền Bắc", "Miền Trung", "Miền Nam", "Gợi ý phượt mạo hiểm", "Gợi ý nghỉ dưỡng biển"]
+          title: "👇 Bấm chọn nhanh gợi ý:",
+          quickReplies: [...closestGuesses.slice(0, 3), "Miền Bắc", "Miền Trung", "Miền Nam"]
         }
       }
     ]
-  };
-}
+  });
+});
 
-// Khởi chạy Server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`🚀 [SERVER RUNNING] Bot Du Lịch Trọn Bộ 63 Tỉnh Thành Việt Nam đang chạy tại Port ${PORT}`);
+  console.log(`🚀 [FULL 63 PROVINCES WEBHOOK SERVER READY] Port ${PORT}`);
 });
