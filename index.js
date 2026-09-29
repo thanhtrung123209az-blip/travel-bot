@@ -1196,46 +1196,46 @@ app.post('/', (req, res) => {
           text: {
             text: [
               `🏖️ **GỢI Ý THIÊN ĐƯỜNG NGHỈ DƯỠNG BIỂN ĐẢO**\n\n` +
-              `Dưới đây là những thiên đường nghỉ dưỡng hàng đầu dành cho bạn:\n\n` +
-              `1. **Kiên Giang (Phú Quốc):** Đảo Ngọc biển xanh trong suốt & Sunset Town.\n` +
-              `2. **Đà Nẵng:** Bãi biển Mỹ Khê top thế giới & Bà Nà Hills.\n` +
-              `3. **Khánh Hòa (Nha Trang):** Vịnh biển thiên đường giải trí & Tắm bùn.\n` +
-              `4. **Bình Định (Quy Nhơn):** Biển Kỳ Co & Hoàng hôn Eo Gió.\n` +
-              `5. **Lâm Đồng (Đà Lạt):** Nghỉ dưỡng núi rừng không khí se lạnh.\n\n` +
+              `Dưới đây là các điểm đến nghỉ dưỡng biển tuyệt đẹp dành cho bạn:\n\n` +
+              `1. **Kiên Giang (Phú Quốc):** Thiên đường nghỉ dưỡng biển ngọc đẳng cấp quốc tế.\n` +
+              `2. **Khánh Hòa (Nha Trang):** Vịnh biển xanh trong, tắm bùn khoáng & VinWonders.\n` +
+              `3. **Đà Nẵng:** Bãi biển Mỹ Khê top thế giới & Sun World Bà Nà Hills.\n` +
+              `4. **Bà Rịa - Vũng Tàu:** Điểm đến nghỉ dưỡng biển gần, Côn Đảo linh thiêng.\n` +
+              `5. **Bình Định (Quy Nhơn):** Eo Gió ngắm hoàng hôn & biển Kỳ Co trong veo.\n\n` +
               `👇 Bạn vui lòng chọn tỉnh thành bên dưới để xem cẩm nang chi tiết:`
             ]
           }
         },
         {
           quickReplies: {
-            title: "👇 Chọn tỉnh nghỉ dưỡng:",
-            quickReplies: ["Kiên Giang", "Đà Nẵng", "Khánh Hòa", "Bình Định", "Lâm Đồng", "⬅️ Quay lại", "Menu Chính"]
+            title: "👇 Chọn tỉnh nghỉ dưỡng biển:",
+            quickReplies: ["Kiên Giang", "Khánh Hòa", "Đà Nẵng", "Bà Rịa - Vũng Tàu", "Bình Định", "⬅️ Quay lại", "Menu Chính"]
           }
         }
       ]
     });
   }
 
-  if (queryNorm.includes("foodtour") || queryNorm.includes("am thuc")) {
+  if (queryNorm.includes("foodtour") || queryNorm.includes("am thuc") || queryNorm.includes("an gi")) {
     return res.json({
       fulfillmentMessages: [
         {
           text: {
             text: [
-              `🍲 **GỢI Ý THIÊN ĐƯỜNG FOODTOUR ẨM THỰC**\n\n` +
-              `Dưới đây là các tọa độ ẩm thực nổi tiếng tôi gợi ý cho bạn:\n\n` +
-              `1. **Hải Phòng:** Bánh đa cua, Bánh mì que, Dừa dầm.\n` +
-              `2. **Hà Nội:** Phở Bát Đàn, Bún chả Hàng Mành, Cà phê trứng.\n` +
-              `3. **Thừa Thiên Huế:** Bún bò Huế gốc, Bánh bèo, Nậm, Lọc, Cơm hến.\n` +
-              `4. **TP. Hồ Chí Minh:** Cơm tấm sườn nướng, Hủ tiếu Nam Vang, Phá lấu.\n` +
-              `5. **Cần Thơ:** Lẩu mắm, Bánh xèo củ hủ dừa, Bánh hỏi thịt quay.\n\n` +
-              `👇 Bạn vui lòng chọn thành phố bên dưới để xem chi tiết danh mục ẩm thực:`
+              `🍜 **GỢI Ý THIÊN ĐƯỜNG FOODTOUR & ẨM THỰC TRỨ DANH**\n\n` +
+              `Nếu bạn là một tín đồ ẩm thực, đừng bỏ qua các thủ phủ Foodtour này:\n\n` +
+              `1. **Hải Phòng:** Thủ phủ Foodtour nổi tiếng (Bánh đa cua, Bánh mì que, Dừa dầm).\n` +
+              `2. **Hà Nội:** Phở truyền thống, Bún chả, Cà phê trứng & Bún thang 36 phố phường.\n` +
+              `3. **Thừa Thiên Huế:** Bún bò Huế, Cơm hến & Các loại bánh Cung đình ngon ngất ngây.\n` +
+              `4. **TP. Hồ Chí Minh:** Cơm tấm, Hủ tiếu, Phá lấu & Thiên đường ăn vặt không ngủ.\n` +
+              `5. **Cần Thơ:** Lẩu mắm, Bánh xèo miệt vườn & Bánh tét lá cẩm sông nước.\n\n` +
+              `👇 Bạn vui lòng chọn tỉnh thành bên dưới để xem cẩm nang chi tiết:`
             ]
           }
         },
         {
           quickReplies: {
-            title: "👇 Chọn thành phố ẩm thực:",
+            title: "👇 Chọn tỉnh thành Foodtour:",
             quickReplies: ["Hải Phòng", "Hà Nội", "Thừa Thiên Huế", "TP. Hồ Chí Minh", "Cần Thơ", "⬅️ Quay lại", "Menu Chính"]
           }
         }
@@ -1243,40 +1243,40 @@ app.post('/', (req, res) => {
     });
   }
 
-  // 4.8 FALLBACK LỊCH SỰ, CHUYÊN NGHIỆP KÈM GỢI Ý
-  let closestGuesses = [];
-  for (const key in duLieu63TinhThanh) {
-    const dist = levenshteinDistance(queryNorm, loaiBoDau(duLieu63TinhThanh[key].ten));
-    if (dist <= 4) {
-      closestGuesses.push(duLieu63TinhThanh[key].ten);
-    }
-  }
-  if (closestGuesses.length === 0) {
-    closestGuesses = ["Hà Giang", "Đà Nẵng", "Phú Quốc", "Đà Lạt"];
-  }
-
+  // 4.8 Trường hợp mặc định (Fallback / Catch-all)
   return res.json({
     fulfillmentMessages: [
       {
         text: {
           text: [
-            `🧐 **TRỢ LÝ TƯ VẤN DU LỊCH:**\n\n` +
-            `Tôi chưa tìm thấy thông tin chính xác theo từ khóa bạn vừa nhập.\n\n` +
-            `Có phải bạn đang quan tâm đến một trong các địa danh nổi tiếng bên dưới không? Xin vui lòng chọn nút bấm nhanh để tôi gửi thông tin chi tiết đến bạn:`
+            `🤔 **XIN LỖI, TÔI CHƯA HIỂU RÕ YÊU CẦU CỦA BẠN**\n\n` +
+            `Bạn có thể gõ tên **1 trong 63 tỉnh thành** (Ví dụ: *Đà Lạt, Hà Nội, Phú Quốc, Ninh Bình, Hải Phòng...*) hoặc chọn danh mục gợi ý bên dưới để tôi hỗ trợ nhé!`
           ]
         }
       },
       {
         quickReplies: {
-          title: "👇 Chọn gợi ý hoặc quay lại:",
-          quickReplies: [...closestGuesses.slice(0, 3), "Miền Bắc", "Miền Trung", "Miền Nam", "⬅️ Quay lại", "Menu Chính"]
+          title: "👇 Chọn danh mục hỗ trợ:",
+          quickReplies: [
+            "Miền Bắc",
+            "Miền Trung",
+            "Miền Nam",
+            "Gợi ý Phượt Mạo Hiểm",
+            "Gợi ý Nghỉ Dưỡng Biển",
+            "Gợi ý Foodtour Ẩm Thực",
+            "Menu Chính"
+          ]
         }
       }
     ]
   });
 });
 
+// =========================================================================
+// 5. KHỞI ĐỘNG SERVER EXPRESS
+// =========================================================================
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`🚀 [bot_travel WEBHOOK SERVER READY] Port ${PORT}`);
+  console.log(`🚀 Bot Travel Server đang chạy tại port ${PORT}`);
 });
