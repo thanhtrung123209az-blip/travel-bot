@@ -45,8 +45,6 @@ function levenshteinDistance(a, b) {
 }
 
 function detectUserIntent(queryNorm) {
-  // === CHÈN DÒNG NÀY VÀO ĐẦU HÀM ===
-  if (/\b(di dau|di dau day|choi o dau|di choi o dau|lam gi bay gio|hom nay đi đâu)\b/.test(queryNorm)) {return { intent: 'GOP_Y_CHUNG', confidence: 0.90 };}
   if (/\b(an gi|dac san|mon ngon|quan an|uong gi|am thuc|foodtour)\b/.test(queryNorm)) return { intent: 'ASK_FOOD', confidence: 0.95 };
   if (/\b(phuot|mao hiem|leo nui|san may|trekking|kham pha)\b/.test(queryNorm)) return { intent: 'ASK_ADVENTURE', confidence: 0.95 };
   if (/\b(nghi duong|bien|resort|thu relax|tam bien|sang chanh)\b/.test(queryNorm)) return { intent: 'ASK_RESORT', confidence: 0.95 };
@@ -79,6 +77,30 @@ const subRegionKeywords = {
   "tay_nguyen": ["tay nguyen"],
   "dong_nam_bo": ["dong nam bo"],
   "tay_nam_bo": ["tay nam bo", "mien tay"]
+};
+
+// Map hỗ trợ lấy tiêu đề hiển thị chuẩn của Tiểu Vùng
+const tenHienThiSubRegion = {
+  "tay_bac": "Khu vực Tây Bắc",
+  "dong_bac": "Khu vực Đông Bắc",
+  "dong_bang_sh": "Đồng bằng Sông Hồng",
+  "bac_trung_bo": "Khu vực Bắc Trung Bộ",
+  "nam_trung_bo": "Khu vực Nam Trung Bộ",
+  "tay_nguyen": "Khu vực Tây Nguyên",
+  "dong_nam_bo": "Khu vực Đông Nam Bộ",
+  "tay_nam_bo": "Đồng bằng Sông Cửu Long (Miền Tây)"
+};
+
+// Map xác định Tiểu vùng thuộc Miền nào (dùng để tạo nút Quay lại Miền)
+const mapSubRegionToMien = {
+  "tay_bac": "Miền Bắc",
+  "dong_bac": "Miền Bắc",
+  "dong_bang_sh": "Miền Bắc",
+  "bac_trung_bo": "Miền Trung",
+  "nam_trung_bo": "Miền Trung",
+  "tay_nguyen": "Miền Trung",
+  "dong_nam_bo": "Miền Nam",
+  "tay_nam_bo": "Miền Nam"
 };
 
 // =========================================================================
@@ -868,304 +890,121 @@ app.post('/', (req, res) => {
           text: {
             text: [
               `🤖 **TRỢ LÝ DU LỊCH VIỆT NAM (bot_travel)**\n\n` +
-              `Xin chào bạn! Tôi là bot_travel - Trợ lý tư vấn du lịch thông minh. Tôi luôn sẵn sàng hỗ trợ bạn tra cứu đầy đủ thông tin về điểm đến, đặc sản ẩm thực, trải nghiệm nổi bật, dự toán chi phí và lịch trình tham quan chi tiết cho trọn bộ **63 tỉnh thành** trên khắp Việt Nam.\n\n` +
-              `👉 **Xin vui lòng chọn danh mục hoặc khu vực bạn muốn khám phá bên dưới:**`
+              `Xin chào bạn! Tôi là bot_travel - Trợ lý tư vấn du lịch thông minh. Tôi luôn sẵn sàng hỗ trợ bạn tra cứu đầy đủ thông tin về điểm đến, đặc sản ẩm thực, trải nghiệm nổi bật, dự toán chi phí và lịch trình tham quan chi tiết cho trọn bộ **63 Tỉnh Thành Việt Nam**!\n\n` +
+              `Vui lòng chọn vùng miền bạn muốn khám phá bên dưới hoặc nhập trực tiếp tên tỉnh thành/câu hỏi nhé:`
             ]
           }
         },
         {
-          quickReplies: {
-            title: "👇 Chọn danh mục khám phá:",
-            quickReplies: [
-              "Miền Bắc",
-              "Miền Trung",
-              "Miền Nam",
-              "Gợi ý Phượt Mạo Hiểm",
-              "Gợi ý Nghỉ Dưỡng Biển",
-              "Gợi ý Foodtour Ẩm Thực"
-            ]
-          }
-        }
-      ]
-    });
-  }
-
-  // 4.2 Nút "Quay lại" (Back Button)
-  if (/\b(quay lai|back|tro ve)\b/.test(queryNorm)) {
-    return res.json({
-      fulfillmentMessages: [
-        {
-          text: {
-            text: [
-              `⬅️ **QUAY LẠI MENU KHÁM PHÁ**\n\n` +
-              `Xin vui lòng chọn khu vực hoặc chủ đề du lịch tiếp theo mà bạn muốn tra cứu:`
-            ]
-          }
-        },
-        {
-          quickReplies: {
-            title: "👇 Chọn danh mục tiếp theo:",
-            quickReplies: [
-              "Miền Bắc",
-              "Miền Trung",
-              "Miền Nam",
-              "Gợi ý Phượt Mạo Hiểm",
-              "Gợi ý Nghỉ Dưỡng Biển",
-              "Gợi ý Foodtour Ẩm Thực",
-              "Menu Chính"
-            ]
-          }
-        }
-      ]
-    });
-  }
-
-  // 4.3 Xử lý các Nút Gợi Ý Chủ Đề Chuyên Sâu
-  if (queryNorm.includes("phuot") || queryNorm.includes("mao hiem")) {
-    return res.json({
-      fulfillmentMessages: [
-        {
-          text: {
-            text: [
-              `🏍️ **GỢI Ý PHƯỢT & MẠO HIỂM HÀNG ĐẦU VIỆT NAM**\n\n` +
-              `Dưới đây là các điểm đến phượt hàng đầu tôi tổng hợp dành cho bạn:\n\n` +
-              `1. **Hà Giang:** Chinh phục đèo Mã Pí Lèng & Chèo thuyền Sông Nho Quế.\n` +
-              `2. **Quảng Bình:** Thám hiểm hệ thống hang động Phong Nha - Kẻ Bàng.\n` +
-              `3. **Sơn La (Tà Xùa):** Săn mây cuồn cuộn trên sống lưng khủng long.\n` +
-              `4. **Yên Bái (Mù Cang Chải):** Nhảy dù lượn 'Bay trên mùa vàng'.\n` +
-              `5. **Cao Bằng:** Ngắm thác Bản Giốc hùng vĩ vùng biên cương.\n\n` +
-              `👇 Bạn vui lòng chọn tỉnh thành bên dưới để xem cẩm nang chi tiết:`
-            ]
-          }
-        },
-        {
-          quickReplies: {
-            title: "👇 Chọn tỉnh phượt mạo hiểm:",
-            quickReplies: ["Hà Giang", "Quảng Bình", "Sơn La", "Yên Bái", "Cao Bằng", "⬅️ Quay lại", "Menu Chính"]
-          }
-        }
-      ]
-    });
-  }
-
-  if (queryNorm.includes("nghi duong") || queryNorm.includes("bien")) {
-    return res.json({
-      fulfillmentMessages: [
-        {
-          text: {
-            text: [
-              `🏖️ **GỢI Ý THIÊN ĐƯỜNG NGHỈ DƯỠNG BIỂN ĐẢO**\n\n` +
-              `Dưới đây là những thiên đường nghỉ dưỡng hàng đầu dành cho bạn:\n\n` +
-              `1. **Kiên Giang (Phú Quốc):** Đảo Ngọc biển xanh trong suốt & Sunset Town.\n` +
-              `2. **Đà Nẵng:** Bãi biển Mỹ Khê top thế giới & Bà Nà Hills.\n` +
-              `3. **Khánh Hòa (Nha Trang):** Vịnh biển thiên đường giải trí & Tắm bùn.\n` +
-              `4. **Bình Định (Quy Nhơn):** Biển Kỳ Co & Hoàng hôn Eo Gió.\n` +
-              `5. **Lâm Đồng (Đà Lạt):** Nghỉ dưỡng núi rừng không khí se lạnh.\n\n` +
-              `👇 Bạn vui lòng chọn tỉnh thành bên dưới để xem cẩm nang chi tiết:`
-            ]
-          }
-        },
-        {
-          quickReplies: {
-            title: "👇 Chọn tỉnh nghỉ dưỡng:",
-            quickReplies: ["Kiên Giang", "Đà Nẵng", "Khánh Hòa", "Bình Định", "Lâm Đồng", "⬅️ Quay lại", "Menu Chính"]
-          }
-        }
-      ]
-    });
-  }
-
-  if (queryNorm.includes("foodtour") || queryNorm.includes("am thuc")) {
-    return res.json({
-      fulfillmentMessages: [
-        {
-          text: {
-            text: [
-              `🍲 **GỢI Ý THIÊN ĐƯỜNG FOODTOUR ẨM THỰC**\n\n` +
-              `Dưới đây là các tọa độ ẩm thực nổi tiếng tôi gợi ý cho bạn:\n\n` +
-              `1. **Hải Phòng:** Bánh đa cua, Bánh mì que, Dừa dầm.\n` +
-              `2. **Hà Nội:** Phở Bát Đàn, Bún chả Hàng Mành, Cà phê trứng.\n` +
-              `3. **Thừa Thiên Huế:** Bún bò Huế gốc, Bánh bèo, Nậm, Lọc, Cơm hến.\n` +
-              `4. **TP. Hồ Chí Minh:** Cơm tấm sườn nướng, Hủ tiếu Nam Vang, Phá lấu.\n` +
-              `5. **Cần Thơ:** Lẩu mắm, Bánh xèo củ hủ dừa, Bánh hỏi thịt quay.\n\n` +
-              `👇 Bạn vui lòng chọn thành phố bên dưới để xem chi tiết danh mục ẩm thực:`
-            ]
-          }
-        },
-        {
-          quickReplies: {
-            title: "👇 Chọn thành phố ẩm thực:",
-            quickReplies: ["Hải Phòng", "Hà Nội", "Thừa Thiên Huế", "TP. Hồ Chí Minh", "Cần Thơ", "⬅️ Quay lại", "Menu Chính"]
-          }
-        }
-      ]
-    });
-  }
-
-  // 4.4 Phân chia vùng miền lớn sang tiểu vùng
-  if (queryNorm === "mien bac" || queryNorm.includes("mien bac")) {
-    return res.json({
-      fulfillmentMessages: [
-        {
-          text: {
-            text: [
-              `🗺️ **DANH MỤC KHU VỰC MIỀN BẮC (25 TỈNH THÀNH)**\n\n` +
-              `Xin vui lòng chọn Tiểu Vùng bên dưới để tra cứu danh sách tỉnh thành tương ứng:`
-            ]
-          }
-        },
-        {
-          quickReplies: {
-            title: "👇 Chọn tiểu vùng Miền Bắc:",
-            quickReplies: [
-              "Tây Bắc (6 tỉnh)",
-              "Đông Bắc (9 tỉnh)",
-              "Đồng Bằng Sông Hồng (10 tỉnh)",
-              "⬅️ Quay lại",
-              "Menu Chính"
-            ]
-          }
-        }
-      ]
-    });
-  }
-
-  if (queryNorm === "mien trung" || queryNorm.includes("mien trung")) {
-    return res.json({
-      fulfillmentMessages: [
-        {
-          text: {
-            text: [
-              `🗺️ **DANH MỤC KHU VỰC MIỀN TRUNG & TÂY NGUYÊN (19 TỈNH THÀNH)**\n\n` +
-              `Xin vui lòng chọn Tiểu Vùng bên dưới để tiếp tục:`
-            ]
-          }
-        },
-        {
-          quickReplies: {
-            title: "👇 Chọn tiểu vùng Miền Trung:",
-            quickReplies: [
-              "Bắc Trung Bộ (6 tỉnh)",
-              "Nam Trung Bộ (8 tỉnh)",
-              "Tây Nguyên (5 tỉnh)",
-              "⬅️ Quay lại",
-              "Menu Chính"
-            ]
-          }
-        }
-      ]
-    });
-  }
-
-  if (queryNorm === "mien nam" || queryNorm.includes("mien nam")) {
-    return res.json({
-      fulfillmentMessages: [
-        {
-          text: {
-            text: [
-              `🗺️ **DANH MỤC KHU VỰC MIỀN NAM (19 TỈNH THÀNH)**\n\n` +
-              `Xin vui lòng chọn Tiểu Vùng bên dưới để tiếp tục:`
-            ]
-          }
-        },
-        {
-          quickReplies: {
-            title: "👇 Chọn tiểu vùng Miền Nam:",
-            quickReplies: [
-              "Đông Nam Bộ (6 tỉnh)",
-              "Tây Nam Bộ / Miền Tây (13 tỉnh)",
-              "⬅️ Quay lại",
-              "Menu Chính"
-            ]
-          }
-        }
-      ]
-    });
-  }
-
-  // Xử lý nút chọn tiểu vùng
-  for (const subKey in subRegionKeywords) {
-    const keywords = subRegionKeywords[subKey];
-    if (keywords.some(kw => queryNorm.includes(kw))) {
-      const provinceList = danhSachSubRegions[subKey];
-      return res.json({
-        fulfillmentMessages: [
-          {
-            text: {
-              text: [
-                `📍 **DỮ LIỆU VÙNG ${subKey.toUpperCase().replace(/_/g, ' ')} (${provinceList.length} TỈNH THÀNH)**\n\n` +
-                `Bạn vui lòng chọn tỉnh thành muốn tra cứu thông tin du lịch:`
+          payload: {
+            richContent: [
+              [
+                { type: "button", text: "🏔️ Du lịch Miền Bắc", postback: "Miền Bắc" },
+                { type: "button", text: "🏖️ Du lịch Miền Trung", postback: "Miền Trung" },
+                { type: "button", text: "🌴 Du lịch Miền Nam", postback: "Miền Nam" },
+                { type: "button", text: "💡 Gợi ý hôm nay đi đâu", postback: "Hôm nay đi đâu" }
               ]
-            }
-          },
-          {
-            quickReplies: {
-              title: "👇 Chọn Tỉnh Thành:",
-              quickReplies: [...provinceList, "⬅️ Quay lại", "Menu Chính"]
-            }
+            ]
           }
-        ]
-      });
-    }
+        }
+      ]
+    });
   }
 
-  // 4.5 Tìm kiếm Tỉnh/Thành chính xác hoặc Fuzzy Match (Đoán từ thông minh)
-  let matchedProvinceKey = null;
-  let highestScore = 0;
+  // 4.2 Chọn Vùng Miền -> Hiển thị danh sách các Tiểu Vùng
+  if (queryNorm === "mien bac" || queryNorm === "mien trung" || queryNorm === "mien nam") {
+    let subButtons = [];
+    let titleMsg = "";
 
-  for (const key in duLieu63TinhThanh) {
-    const tinhObj = duLieu63TinhThanh[key];
-    const keyNorm = loaiBoDau(key);
-    const tenNorm = loaiBoDau(tinhObj.ten);
+    if (queryNorm === "mien bac") {
+      titleMsg = "🏔️ **KHÁM PHÁ DU LỊCH MIỀN BẮC**\n\nHãy chọn khu vực tiểu vùng bạn muốn tra cứu danh sách tỉnh thành:";
+      subButtons = [
+        { type: "button", text: "⛰️ Khu vực Tây Bắc (6 tỉnh)", postback: "tay_bac" },
+        { type: "button", text: "🌲 Khu vực Đông Bắc (9 tỉnh)", postback: "dong_bac" },
+        { type: "button", text: "🌾 Đồng bằng Sông Hồng (10 tỉnh)", postback: "dong_bang_sh" },
+        { type: "button", text: "🔙 Quay lại Menu Chính", postback: "Menu" }
+      ];
+    } else if (queryNorm === "mien trung") {
+      titleMsg = "🏖️ **KHÁM PHÁ DU LỊCH MIỀN TRUNG & TÂY NGUYÊN**\n\nHãy chọn khu vực tiểu vùng bạn muốn tra cứu danh sách tỉnh thành:";
+      subButtons = [
+        { type: "button", text: "🌊 Bắc Trung Bộ (6 tỉnh)", postback: "bac_trung_bo" },
+        { type: "button", text: "☀️ Nam Trung Bộ (8 tỉnh)", postback: "nam_trung_bo" },
+        { type: "button", text: "🐘 Tây Nguyên (5 tỉnh)", postback: "tay_nguyen" },
+        { type: "button", text: "🔙 Quay lại Menu Chính", postback: "Menu" }
+      ];
+    } else if (queryNorm === "mien nam") {
+      titleMsg = "🌴 **KHÁM PHÁ DU LỊCH MIỀN NAM**\n\nHãy chọn khu vực tiểu vùng bạn muốn tra cứu danh sách tỉnh thành:";
+      subButtons = [
+        { type: "button", text: "🏙️ Đông Nam Bộ (6 tỉnh)", postback: "dong_nam_bo" },
+        { type: "button", text: "🚣 Tây Nam Bộ - Miền Tây (13 tỉnh)", postback: "tay_nam_bo" },
+        { type: "button", text: "🔙 Quay lại Menu Chính", postback: "Menu" }
+      ];
+    }
 
-    if (queryNorm.includes(keyNorm) || queryNorm.includes(tenNorm)) {
-      matchedProvinceKey = key;
-      highestScore = 1.0;
+    return res.json({
+      fulfillmentMessages: [
+        { text: { text: [titleMsg] } },
+        { payload: { richContent: [subButtons] } }
+      ]
+    });
+  }
+
+  // 4.3 Chọn Tiểu Vùng -> Hiển thị danh sách các Tỉnh Thành trong Tiểu Vùng đó
+  let selectedSubKey = null;
+  for (const [key, keywords] of Object.entries(subRegionKeywords)) {
+    if (keywords.includes(queryNorm) || queryNorm === key) {
+      selectedSubKey = key;
       break;
     }
-
-    const distance = levenshteinDistance(queryNorm, keyNorm);
-    const similarity = 1 - (distance / Math.max(queryNorm.length, keyNorm.length));
-    if (similarity > highestScore && similarity >= 0.55) {
-      highestScore = similarity;
-      matchedProvinceKey = key;
-    }
   }
 
-  // 4.6 TRẢ VỀ CẨM NANG DU LỊCH CHI TIẾT
-  if (matchedProvinceKey) {
-    const province = duLieu63TinhThanh[matchedProvinceKey];
+  if (selectedSubKey) {
+    const provinceList = danhSachSubRegions[selectedSubKey];
+    const subTitle = tenHienThiSubRegion[selectedSubKey] || selectedSubKey;
+    const parentMien = mapSubRegionToMien[selectedSubKey] || "Menu";
+
+    let provinceButtons = provinceList.map(pName => {
+      return { type: "button", text: `📍 ${pName}`, postback: pName };
+    });
+    
+    // Đã sửa: Nút Quay lại để trở về Vùng Miền tương ứng chứ không về Trang Chính
+    provinceButtons.push({ type: "button", text: `🔙 Quay lại ${parentMien}`, postback: parentMien });
+
+    return res.json({
+      fulfillmentMessages: [
+        { text: { text: [`📍 **DANH SÁCH TỈNH THÀNH - ${subTitle.toUpperCase()}**\n\nVui lòng chọn một tỉnh thành để xem bách khoa thông tin chi tiết:`] } },
+        { payload: { richContent: [provinceButtons] } }
+      ]
+    });
+  }
+
+  // 4.4 Gợi ý "Hôm nay đi đâu" / "Nên đi đâu"
+  if (queryNorm === "hom nay di dau" || intentAnalysis.intent === 'RECOMMEND') {
+    // Đã sửa: Thêm nút Quay lại Menu Chính để người dùng tùy chọn trở về
     return res.json({
       fulfillmentMessages: [
         {
           text: {
             text: [
-              `🌐 **CẨM NANG DU LỊCH: ${province.ten.toUpperCase()}**\n\n` +
-              `✨ **Tổng quan điểm đến:**\n${province.moTa}\n\n` +
-              `🗓️ **Thời điểm du lịch lý tưởng:**\n${province.thoiDiem}\n\n` +
-              `🏛️ **Địa điểm tham quan nổi bật:**\n${province.diemDen}\n\n` +
-              `🎡 **Trải nghiệm không thể bỏ qua:**\n${province.hoatDong}\n\n` +
-              `🍲 **Ẩm thực & Đặc sản trứ danh:**\n${province.dacSan}\n\n` +
-              `💰 **Dự toán chi phí tham khảo:** ${province.chiPhi}\n\n` +
-              `🗺️ **Gợi ý lịch trình chi tiết (3N2Đ):**\n${province.lichTrinh}`
+              `🎯 **GỢI Ý ĐIỂM ĐẾN HẤP DẪN HÔM NAY:**\n\n` +
+              `1. 🏔️ **Sapa / Hà Giang**: Săn mây, ngắm cảnh núi rừng hùng vĩ.\n` +
+              `2. 🏖️ **Đà Nẵng / Hội An**: Nghỉ dưỡng biển, check-in Cầu Vàng và Phố cổ.\n` +
+              `3. 🌲 **Đà Lạt / Măng Đen**: Tận hưởng không khí se lạnh, bình yên.\n` +
+              `4. 🏝️ **Phú Quốc**: Thiên đường nghỉ dưỡng biển đảo đẳng cấp.\n\n` +
+              `Bạn muốn tìm hiểu chi tiết điểm đến nào? Bạn có thể nhập tên tỉnh thành hoặc chọn từ các gợi ý dưới đây:`
             ]
           }
         },
         {
-          image: {
-            imageUri: province.anh,
-            accessibilityText: `Hình ảnh cảnh đẹp du lịch tại ${province.ten}`
-          }
-        },
-        {
-          quickReplies: {
-            title: "👇 Bạn có muốn xem thêm gợi ý khác?",
-            quickReplies: [
-              "Gợi ý Phượt Mạo Hiểm",
-              "Gợi ý Nghỉ Dưỡng Biển",
-              "Gợi ý Foodtour Ẩm Thực",
-              "⬅️ Quay lại",
-              "Menu Chính"
+          payload: {
+            richContent: [
+              [
+                { type: "button", text: "📍 Sa Pa (Lào Cai)", postback: "Lào Cai" },
+                { type: "button", text: "📍 Đà Nẵng", postback: "Đà Nẵng" },
+                { type: "button", text: "📍 Đà Lạt (Lâm Đồng)", postback: "Lâm Đồng" },
+                { type: "button", text: "📍 Phú Quốc (Kiên Giang)", postback: "Kiên Giang" },
+                { type: "button", text: "🔙 Quay lại Menu Chính", postback: "Menu" }
+              ]
             ]
           }
         }
@@ -1173,40 +1012,110 @@ app.post('/', (req, res) => {
     });
   }
 
-  // 4.7 FALLBACK LỊCH SỰ, CHUYÊN NGHIỆP KÈM GỢI Ý
-  let closestGuesses = [];
-  for (const key in duLieu63TinhThanh) {
-    const dist = levenshteinDistance(queryNorm, loaiBoDau(duLieu63TinhThanh[key].ten));
-    if (dist <= 4) {
-      closestGuesses.push(duLieu63TinhThanh[key].ten);
+  // 4.5 Tìm kiếm chính xác hoặc Fuzzy Search tên Tỉnh Thành
+  let matchedKey = null;
+
+  // Tim kiem chinh xac
+  for (const key of Object.keys(duLieu63TinhThanh)) {
+    if (queryNorm === key || queryNorm.includes(key)) {
+      matchedKey = key;
+      break;
     }
   }
-  if (closestGuesses.length === 0) {
-    closestGuesses = ["Hà Giang", "Đà Nẵng", "Phú Quốc", "Đà Lạt"];
+
+  // Chi tiet Tinh Thanh neu tim thach cong
+  if (matchedKey) {
+    const data = duLieu63TinhThanh[matchedKey];
+    const subRegionName = tenHienThiSubRegion[data.subRegion] || "Khu vực";
+
+    return res.json({
+      fulfillmentMessages: [
+        {
+          payload: {
+            richContent: [
+              [
+                {
+                  type: "info",
+                  title: data.ten,
+                  subtitle: `${data.moTa}\n\n🗓️ **Thời điểm đẹp:**\n${data.thoiDiem}\n\n📍 **Điểm đến nổi tiếng:**\n${data.diemDen}\n\n🚴 **Trải nghiệm nên thử:**\n${data.hoatDong}\n\n🍲 **Đặc sản ẩm thực:**\n${data.dacSan}\n\n💰 **Dự toán chi phí:** ${data.chiPhi}\n\n🗺️ **Gợi ý lịch trình (3N2Đ):**\n${data.lichTrinh}`,
+                  image: { src: { rawUrl: data.anh } }
+                },
+                { type: "button", text: `🔙 Quay lại danh sách ${subRegionName}`, postback: data.subRegion },
+                { type: "button", text: "🏠 Về Menu Chính", postback: "Menu" }
+              ]
+            ]
+          }
+        }
+      ]
+    });
   }
 
+  // 4.6 Neu khong tim thay exact match -> Chay Levenshtein Fuzzy Suggest
+  let bestMatchKey = null;
+  let minDistance = Infinity;
+
+  for (const key of Object.keys(duLieu63TinhThanh)) {
+    const dist = levenshteinDistance(queryNorm, key);
+    if (dist < minDistance && dist <= 3) {
+      minDistance = dist;
+      bestMatchKey = key;
+    }
+  }
+
+  if (bestMatchKey) {
+    const suggestedData = duLieu63TinhThanh[bestMatchKey];
+    return res.json({
+      fulfillmentMessages: [
+        {
+          text: {
+            text: [
+              `🤔 Có phải bạn muốn tìm kiếm thông tin về **${suggestedData.ten}** không?\n\nVui lòng nhấn vào nút bên dưới để xem chi tiết:`
+            ]
+          }
+        },
+        {
+          payload: {
+            richContent: [
+              [
+                { type: "button", text: `📍 Xem thông tin ${suggestedData.ten}`, postback: suggestedData.ten },
+                { type: "button", text: "🔙 Quay lại Menu Chính", postback: "Menu" }
+              ]
+            ]
+          }
+        }
+      ]
+    });
+  }
+
+  // 4.7 Fallback khi không nhận diện được
   return res.json({
     fulfillmentMessages: [
       {
         text: {
           text: [
-            `🧐 **TRỢ LÝ TƯ VẤN DU LỊCH:**\n\n` +
-            `Tôi chưa tìm thấy thông tin chính xác theo từ khóa bạn vừa nhập.\n\n` +
-            `Có phải bạn đang quan tâm đến một trong các địa danh nổi tiếng bên dưới không? Xin vui lòng chọn nút bấm nhanh để tôi gửi thông tin chi tiết đến bạn:`
+            `😅 Rất tiếc, tôi chưa hiểu rõ yêu cầu của bạn hoặc tỉnh thành bạn tìm kiếm chưa có trong từ khóa hệ thống.\n\n` +
+            `Bạn vui lòng chọn một trong các vùng miền dưới đây để chọn tỉnh thành tương ứng nhé:`
           ]
         }
       },
       {
-        quickReplies: {
-          title: "👇 Chọn gợi ý hoặc quay lại:",
-          quickReplies: [...closestGuesses.slice(0, 3), "Miền Bắc", "Miền Trung", "Miền Nam", "⬅️ Quay lại", "Menu Chính"]
+        payload: {
+          richContent: [
+            [
+              { type: "button", text: "🏔️ Du lịch Miền Bắc", postback: "Miền Bắc" },
+              { type: "button", text: "🏖️ Du lịch Miền Trung", postback: "Miền Trung" },
+              { type: "button", text: "🌴 Du lịch Miền Nam", postback: "Miền Nam" },
+              { type: "button", text: "🏠 Về Menu Chính", postback: "Menu" }
+            ]
+          ]
         }
       }
     ]
   });
 });
 
+// Khởi chạy Server Node.js
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`🚀 [bot_travel WEBHOOK SERVER READY] Port ${PORT}`);
+  console.log(`Server bot_travel đang chạy tại port ${PORT}`);
 });
