@@ -859,24 +859,6 @@ app.post('/', (req, res) => {
   const queryNorm = loaiBoDau(rawQuery);
 
   const intentAnalysis = detectUserIntent(queryNorm);
-  // Xử lý khi người dùng hỏi chung chung (Ví dụ: "Giờ đi đâu đây")
-  if (intentAnalysis.intent === 'GOP_Y_CHUNG') {
-        return res.json({
-            fulfillmentMessages: [
-                {
-                    text: {
-                        text: ["😊 **TRỢ LÝ TƯ VẤN DU LỊCH:** Đừng lo, Việt Nam có vô vàn cảnh đẹp đang chờ bạn khám phá! Bạn có muốn ghé thăm các điểm đến nổi bật này không?"]
-                    }
-                },
-                {
-                    quickReplies: {
-                        title: "👉 Gợi ý nhanh cho bạn:",
-                        quickReplies: ["Đà Nẵng", "Phú Quốc", "Đà Lạt", "Hà Nội", "Cần Thơ", "Nghệ An”]
-                    }
-                }
-            ]
-        });
-         }
 
   // 4.1 Menu Chính / Reset / Chào hỏi
   if (/\b(menu|bat dau|reset|xin chao|hi|hello|menu chinh)\b/.test(queryNorm)) {
