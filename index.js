@@ -45,6 +45,9 @@ function levenshteinDistance(a, b) {
 }
 
 function detectUserIntent(queryNorm) {
+  // === CHÈN DÒNG NÀY VÀO ĐẦU HÀM ===
+  if (/\b(di dau|di dau day|choi o dau|di choi o dau|lam gi bay gio)\b/.test(queryNorm)) {
+  return { intent: 'GOP_Y_CHUNG', confidence: 0.90 };}
   if (/\b(an gi|dac san|mon ngon|quan an|uong gi|am thuc|foodtour)\b/.test(queryNorm)) return { intent: 'ASK_FOOD', confidence: 0.95 };
   if (/\b(phuot|mao hiem|leo nui|san may|trekking|kham pha)\b/.test(queryNorm)) return { intent: 'ASK_ADVENTURE', confidence: 0.95 };
   if (/\b(nghi duong|bien|resort|thu relax|tam bien|sang chanh)\b/.test(queryNorm)) return { intent: 'ASK_RESORT', confidence: 0.95 };
