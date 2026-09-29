@@ -67,6 +67,18 @@ const danhSachSubRegions = {
   "tay_nam_bo": ["Cần Thơ", "An Giang", "Bạc Liêu", "Bến Tre", "Cà Mau", "Đồng Tháp", "Hậu Giang", "Kiên Giang", "Long An", "Sóc Trăng", "Tiền Giang", "Trà Vinh", "Vĩnh Long"]
 };
 
+// Map các từ khóa xuất hiện trên nút bấm để nhận diện chính xác tiểu vùng
+const subRegionKeywords = {
+  "tay_bac": ["tay bac"],
+  "dong_bac": ["dong bac"],
+  "dong_bang_sh": ["dong bang song hong", "dong bang sh"],
+  "bac_trung_bo": ["bac trung bo"],
+  "nam_trung_bo": ["nam trung bo"],
+  "tay_nguyen": ["tay nguyen"],
+  "dong_nam_bo": ["dong nam bo"],
+  "tay_nam_bo": ["tay nam bo", "mien tay"]
+};
+
 // =========================================================================
 // 3. DATABASE BÁCH KHOA TOÀN THƯ DU LỊCH TRỌN BỘ 63 TỈNH THÀNH VIỆT NAM
 // =========================================================================
@@ -96,7 +108,7 @@ const duLieu63TinhThanh = {
   "lao cai": {
     ten: "Tỉnh Lào Cai (Sa Pa)",
     subRegion: "tay_bac", mien: "bac",
-    anh: "https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=1000",
+    anh: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1000",
     moTa: "Tỉnh biên giới phía Bắc sở hữu thị trấn sương mờ Sa Pa nổi tiếng, đỉnh Fansipan hùng vĩ và cảnh quan thiên nhiên đa dạng bậc nhất vùng Tây Bắc.",
     thoiDiem: "• Tháng 9 - 10: Mùa lúa chín vàng thung lũng Mường Hoa.\n• Tháng 12 - 1: Cơ hội săn tuyết rơi và băng giá trên đỉnh núi cao.",
     diemDen: "• Đỉnh Fansipan: Nóc nhà Đông Dương cao 3.143m.\n• Bản Cát Cát, Tả Van: Bản làng dân tộc H'Mông, Giáy.\n• Đèo Ô Quy Hồ & Thung lũng Mường Hoa.",
@@ -116,7 +128,7 @@ const duLieu63TinhThanh = {
   "ninh binh": {
     ten: "Tỉnh Ninh Bình",
     subRegion: "dong_bang_sh", mien: "bac",
-    anh: "https://images.unsplash.com/photo-1531908221580-1a166a36fa59?w=1000",
+    anh: "https://images.unsplash.com/photo-1599707303381-807c42749419?w=1000",
     moTa: "Cố đô Hoa Lư lịch sử sở hữu Quần thể danh thắng Tràng An - Di sản văn hóa và thiên nhiên thế giới kép duy nhất tại Đông Nam Á với cảnh quan sơn thủy hữu tình.",
     thoiDiem: "• Tháng 1 - 3: Mùa lễ hội Xuân thanh bình.\n• Tháng 5 - 6: Mùa lúa chín vàng rực hai bên dòng sông Ngô Đồng (Tam Cốc).",
     diemDen: "• Quần thể danh thắng Tràng An & Tam Cốc - Bích Động.\n• Hang Múa: Leo 500 bậc đá ngắm trọn thung lũng.\n• Chùa Bái Đính & Cố đô Hoa Lư.",
@@ -126,7 +138,7 @@ const duLieu63TinhThanh = {
   "cao bang": {
     ten: "Tỉnh Cao Bằng",
     subRegion: "dong_bac", mien: "bac",
-    anh: "https://images.unsplash.com/photo-1599707303381-807c42749419?w=1000",
+    anh: "https://images.unsplash.com/photo-1628155930542-3c7a64e2c833?w=1000",
     moTa: "Vùng đất biên kim phía Bắc nổi tiếng với Thác Bản Giốc - thác nước tự nhiên trên đường biên giới lớn nhất Đông Nam Á cùng hệ thống di tích lịch sử cách mạng Pắc Bó.",
     thoiDiem: "• Tháng 8 - 10: Mùa nước đổ xanh trong và lúa chín vàng dưới chân thác.",
     diemDen: "• Thác Bản Giốc hùng vĩ.\n• Động Ngườm Ngao: Hang động thạch nhũ tự nhiên tuyệt đẹp.\n• Khu di tích Pắc Bó & Suối Lê Nin xanh như ngọc bích.",
@@ -136,7 +148,7 @@ const duLieu63TinhThanh = {
   "dien bien": {
     ten: "Tỉnh Điện Biên",
     subRegion: "tay_bac", mien: "bac",
-    anh: "https://images.unsplash.com/photo-1579202673506-ca3ce28943ef?w=1000",
+    anh: "https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=1000",
     moTa: "Mảnh đất lịch sử lừng lẫy với Chiến thắng Điện Biên Phủ 'lừng lẫy năm châu, chấn động địa cầu', nơi hội tụ cảnh quan Tây Bắc hoang sơ và sắc hoa ban nở rộ.",
     thoiDiem: "• Tháng 3: Mùa hoa ban nở trắng xóa các sườn đồi.\n• Tháng 5: Dịp kỷ niệm chiến thắng lịch sử Điện Biên Phủ 7/5.",
     diemDen: "• Bảo tàng Chiến thắng Điện Biên Phủ, Đồi A1, Hầm De Castries.\n• Cực Tây A Pa Chải: Điểm ngã ba biên giới Việt - Trung - Lào.",
@@ -146,7 +158,7 @@ const duLieu63TinhThanh = {
   "son la": {
     ten: "Tỉnh Sơn La (Mộc Châu)",
     subRegion: "tay_bac", mien: "bac",
-    anh: "https://images.unsplash.com/photo-1628155930542-3c7a64e2c833?w=1000",
+    anh: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1000",
     moTa: "Nổi tiếng với Cao nguyên Mộc Châu xanh ngát, đồi chè trái tim bạt ngàn và điểm săn mây Tà Xùa ảo diệu giữa biển mây bồng bềnh.",
     thoiDiem: "• Tháng 1 - 2: Mùa hoa mận, hoa đào nở trắng tinh khôi thung lũng.\n• Tháng 9 - 11: Mùa săn mây Tà Xùa lý tưởng.",
     diemDen: "• Cao nguyên Mộc Châu: Đồi chè trái tim, Thác Dải Yếm, Cầu kính Bạch Long.\n• Đỉnh Tà Xùa (Bắc Yên): Thiên đường săn mây.",
@@ -156,7 +168,7 @@ const duLieu63TinhThanh = {
   "yen bai": {
     ten: "Tỉnh Yên Bái (Mù Cang Chải)",
     subRegion: "tay_bac", mien: "bac",
-    anh: "https://images.unsplash.com/photo-1518684079-3c830dcef090?w=1000",
+    anh: "https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=1000",
     moTa: "Sở hữu Danh thắng Quốc gia Ruộng bậc thang Mù Cang Chải - tuyệt tác kiến trúc canh tác mộc mạc do chính đồng bào H'Mông kiến tạo qua hàng trăm năm.",
     thoiDiem: "• Tháng 5 - 6: Mùa nước đổ lấp lánh như gương.\n• Tháng 9 - 10: Mùa vàng lúa chín rực rỡ khắp nẻo đường.",
     diemDen: "• Đồi Mâm Xôi, Đồi Móng Ngựa Mù Cang Chải.\n• Đèo Khau Phạ: Điểm nhảy dù lượn 'Bay trên mùa vàng'.\n• Suối nước nóng Trạm Tấu.",
@@ -166,7 +178,7 @@ const duLieu63TinhThanh = {
   "hoa binh": {
     ten: "Tỉnh Hòa Bình (Mai Châu)",
     subRegion: "dong_bac", mien: "bac",
-    anh: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1000",
+    anh: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=1000",
     moTa: "Cửa ngõ Tây Bắc thơ mộng với thung lũng Mai Châu bình yên, văn hóa dân tộc Mường, Thái đặc sắc cùng lòng hồ thủy điện Hòa Bình xanh biếc.",
     thoiDiem: "• Tháng 10 - Tháng 4 năm sau: Mùa khô khí hậu mát mẻ, trong lành.",
     diemDen: "• Bản Lác, Bản Poom Coọng Mai Châu.\n• Hồ thủy điện Hòa Bình (Vịnh Hạ Long trên núi).\n• Khu du lịch Thung Nai.",
@@ -176,7 +188,7 @@ const duLieu63TinhThanh = {
   "lai chau": {
     ten: "Tỉnh Lai Châu",
     subRegion: "tay_bac", mien: "bac",
-    anh: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=1000",
+    anh: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1000",
     moTa: "Mảnh đất sơn hà kỳ vĩ sở hữu những đỉnh núi cao hàng đầu Việt Nam như Pu Ta Leng, Pu Si Lung thu hút đông đảo phượt thủ trekking khám phá.",
     thoiDiem: "• Tháng 9 - 11: Thời tiết khô ráo thích hợp trekking chinh phục đỉnh núi.",
     diemDen: "• Đèo Hoàng Liên Sơn (Ô Quy Hồ) & Cầu kính Rồng May.\n• Bản du lịch cộng đồng Sin Suối Hồ.\n• Đỉnh núi Pu Ta Leng.",
@@ -186,7 +198,7 @@ const duLieu63TinhThanh = {
   "lang son": {
     ten: "Tỉnh Lạng Sơn",
     subRegion: "dong_bac", mien: "bac",
-    anh: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1000",
+    anh: "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1000",
     moTa: "Tỉnh biên giới phía Bắc nổi tiếng với danh thắng Chùa Tam Thanh, Núi Nàng Tô Thị, đỉnh Mẫu Sơn quanh năm mây phủ và các khu chợ cửa khẩu sầm uất.",
     thoiDiem: "• Tháng 12 - 1: Cơ hội săn băng giá tuyết phủ đỉnh Mẫu Sơn.\n• Tháng 1 - 3 âm lịch: Lễ hội xuân Tam Thanh.",
     diemDen: "• Động Tam Thanh, Nàng Tô Thị, Thành Nhà Mạc.\n• Đỉnh Mẫu Sơn & Cửa khẩu quốc tế Hữu Nghị.",
@@ -196,7 +208,7 @@ const duLieu63TinhThanh = {
   "bac kan": {
     ten: "Tỉnh Bắc Kạn",
     subRegion: "dong_bac", mien: "bac",
-    anh: "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=1000",
+    anh: "https://images.unsplash.com/photo-1439853949127-fa647821eba0?w=1000",
     moTa: "Sở hữu Hồ Ba Bể - một trong 20 hồ nước ngọt tự nhiên lớn nhất thế giới nằm trong khuôn viên Vườn quốc gia Ba Bể nguyên sơ tĩnh lặng.",
     thoiDiem: "• Tháng 5 - 9: Thời tiết mát mẻ, nước hồ xanh trong ngọc bích.",
     diemDen: "• Hồ Ba Bể, Động Puông, Thác Đầu Đẳng.\n• Động Hua Mạ & Bản Pac Ngoi.",
@@ -216,7 +228,7 @@ const duLieu63TinhThanh = {
   "thai nguyen": {
     ten: "Tỉnh Thái Nguyên",
     subRegion: "dong_bac", mien: "bac",
-    anh: "https://images.unsplash.com/photo-1586339384886-5383f982eb9d?w=1000",
+    anh: "https://images.unsplash.com/photo-1523712999610-f77fbcfc3843?w=1000",
     moTa: "Đệ nhất danh trà Việt Nam với những vùng chè Tân Cương xanh ngát, kết hợp di tích chiến khu ATK Định Hóa và Khu du lịch Hồ Núi Cốc.",
     thoiDiem: "• Quanh năm, lý tưởng nhất từ tháng 9 đến tháng 12.",
     diemDen: "• Đồi chè Tân Cương thơm mát.\n• Khu du lịch Hồ Núi Cốc & ATK Định Hóa.\n• Bảo tàng Văn hóa các dân tộc Việt Nam.",
@@ -226,7 +238,7 @@ const duLieu63TinhThanh = {
   "phu tho": {
     ten: "Tỉnh Phú Thọ",
     subRegion: "dong_bac", mien: "bac",
-    anh: "https://images.unsplash.com/photo-1511497584788-876761c11969?w=1000",
+    anh: "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=1000",
     moTa: "Đất Tổ Hùng Vương thiêng liêng - cội nguồn dân tộc Việt Nam, sở hữu Đồi chè Long Cốc ảo diệu như những bát úp xanh mướt.",
     thoiDiem: "• Tháng 3 âm lịch: Giỗ Tổ Hùng Vương (10/3 âm lịch) trang nghiêm.",
     diemDen: "• Khu di tích lịch sử Đền Hùng.\n• Đồi chè Long Cốc (Thanh Sơn).\n• Vườn quốc gia Xuân Sơn.",
@@ -236,7 +248,7 @@ const duLieu63TinhThanh = {
   "bac giang": {
     ten: "Tỉnh Bắc Giang",
     subRegion: "dong_bac", mien: "bac",
-    anh: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=1000",
+    anh: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1000",
     moTa: "Thủ phủ vải thiều Lục Ngạn ngọt lịm, nơi lưu giữ Quần thể danh thắng Tây Yên Tử linh thiêng và Chùa Vĩnh Nghiêm lưu giữ mộc bản di sản thế giới.",
     thoiDiem: "• Tháng 6: Mùa thu hoạch vải thiều đỏ rực khắp làng quê.",
     diemDen: "• Khu du lịch tâm linh Tây Yên Tử.\n• Chùa Vĩnh Nghiêm & Hồ Cấm Sơn.\n• Mẫu Sơn & Đồng Cao phượt cắm trại.",
@@ -246,7 +258,7 @@ const duLieu63TinhThanh = {
   "vinh phuc": {
     ten: "Tỉnh Vĩnh Phúc (Tam Đảo)",
     subRegion: "dong_bang_sh", mien: "bac",
-    anh: "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1000",
+    anh: "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=1000",
     moTa: "Thị trấn Tam Đảo mờ sương được ví như 'Đà Lạt thu nhỏ' của miền Bắc với thời tiết 4 mùa trong 1 ngày, cùng khu nghỉ dưỡng sinh thái Hồ Đại Lải tươi mát.",
     thoiDiem: "• Quanh năm, cực kỳ lý tưởng cho chuyến nghỉ dưỡng ngắn ngày cuối tuần.",
     diemDen: "• Thị trấn Tam Đảo & Nhà thờ đá cổ.\n• Thiền viện Trúc Lâm Tây Thiên.\n• Khu du lịch Hồ Đại Lải & Flamingo Đại Lải.",
@@ -256,7 +268,7 @@ const duLieu63TinhThanh = {
   "bac ninh": {
     ten: "Tỉnh Bắc Ninh",
     subRegion: "dong_bang_sh", mien: "bac",
-    anh: "https://images.unsplash.com/photo-1542224566-6e85f2e6772f?w=1000",
+    anh: "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?w=1000",
     moTa: "Nôi văn hóa Kinh Bắc trù phú, quê hương của những điệu Dân ca Quan họ di sản phi vật thể thế giới cùng vô số ngôi chùa cổ kính lâu đời.",
     thoiDiem: "• Tháng 1 - 3 âm lịch: Mùa lễ hội xuân Kinh Bắc (Hội Lim 13/1 âm lịch).",
     diemDen: "• Chùa Phật Tích, Chùa Dâu (ngôi chùa cổ nhất Việt Nam).\n• Đền Đô (thờ 8 vị vua nhà Lý) & Làng tranh Đông Hồ.",
@@ -266,7 +278,7 @@ const duLieu63TinhThanh = {
   "hai duong": {
     ten: "Tỉnh Hải Dương",
     subRegion: "dong_bang_sh", mien: "bac",
-    anh: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1000",
+    anh: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1000",
     moTa: "Vùng đất nhân kiệt lưu giữ quần thể di tích Côn Sơn - Kiếp Bạc gắn liền với anh hùng Nguyễn Trãi, Trần Hưng Đạo và đặc sản bánh đậu xanh trứ danh.",
     thoiDiem: "• Tháng 1 - 3 & Tháng 8 âm lịch (Lễ hội Côn Sơn - Kiếp Bạc).",
     diemDen: "• Quần thể Côn Sơn - Kiếp Bạc.\n• Đảo Cò Chi Lăng Nam xanh mát sinh thái.\n• Văn miếu Mao Điền.",
@@ -276,7 +288,7 @@ const duLieu63TinhThanh = {
   "hai phong": {
     ten: "Thành phố Hải Phòng",
     subRegion: "dong_bang_sh", mien: "bac",
-    anh: "https://images.unsplash.com/photo-1582510003544-4d00b7f74220?w=1000",
+    anh: "https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?w=1000",
     moTa: "Thành phố Cảng Hoa Phượng Đỏ sôi động, nổi tiếng với thiên đường du lịch Đảo Cát Bà, Vịnh Lan Hạ và trào lưu Foodtour ẩm thực đường phố bùng nổ.",
     thoiDiem: "• Tháng 4 - 8: Mùa hè rực rỡ tắm biển Cát Bà.\n• Quanh năm: Trải nghiệm Foodtour phố cổ.",
     diemDen: "• Quần đảo Cát Bà & Vịnh Lan Hạ chèo Kayak.\n• Tuyến phố cổ Foodtour Hải Phòng.\n• Bãi biển Đồ Sơn & Biệt thự Bảo Đại.",
@@ -286,7 +298,7 @@ const duLieu63TinhThanh = {
   "hung yen": {
     ten: "Tỉnh Hưng Yên",
     subRegion: "dong_bang_sh", mien: "bac",
-    anh: "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=1000",
+    anh: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1000",
     moTa: "Mảnh đất 'Thứ nhất Kinh Kỳ, thứ nhì Phố Hiến' lưu giữ quần thể Phố Hiến cổ kính cùng đặc sản nhãn lồng tiến vua nổi tiếng cả nước.",
     thoiDiem: "• Tháng 7 - 8: Mùa nhãn lồng chín mọng ngọt lịm.",
     diemDen: "• Quần thể di tích Phố Hiến cổ, Chùa Chuông.\n• Văn Miếu Xích Đằng & Làng Nôm cổ kính.",
@@ -306,7 +318,7 @@ const duLieu63TinhThanh = {
   "nam dinh": {
     ten: "Tỉnh Nam Định",
     subRegion: "dong_bang_sh", mien: "bac",
-    anh: "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?w=1000",
+    anh: "https://images.unsplash.com/photo-1510784722464-77360537ea67?w=1000",
     moTa: "Vùng đất Thánh địa kiến trúc nhà thờ Công giáo tráng lệ độc đáo, quê hương nhà Trần lịch sử và nơi khai sinh món Phở Bò trứ danh.",
     thoiDiem: "• Dịp Giáng Sinh (tháng 12) vô cùng náo nhiệt hoành tráng.\n• Đêm 14 rằm tháng Giêng: Lễ khai ấn Đền Trần.",
     diemDen: "• Nhà thờ đổ Hải Lý, Tòa giám mục Bùi Chu, Nhà thờ Hưng Nghĩa.\n• Khu di tích Đền Trần & Vườn quốc gia Xuân Thủy.",
@@ -316,7 +328,7 @@ const duLieu63TinhThanh = {
   "thai binh": {
     ten: "Tỉnh Thái Bình",
     subRegion: "dong_bang_sh", mien: "bac",
-    anh: "https://images.unsplash.com/photo-1495567720989-cebdbdd97913?w=1000",
+    anh: "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=1000",
     moTa: "Quê hương lúa nước bình yên nổi tiếng với bãi biển vô cực Quang Lang thơ mộng như chiếc gương khổng lồ soi chiếu trời mây.",
     thoiDiem: "• Tháng 5 - 9: Mùa đón bình minh săn ảnh bãi biển vô cực.",
     diemDen: "• Biển vô cực Quang Lang (Thụy Xuân).\n• Chùa Keo cổ kính hơn 400 năm tuổi kiến trúc gỗ độc đáo.\n• Biển Đồng Châu.",
@@ -338,7 +350,7 @@ const duLieu63TinhThanh = {
   "nghe an": {
     ten: "Tỉnh Nghệ An",
     subRegion: "bac_trung_bo", mien: "trung",
-    anh: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1000",
+    anh: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1000",
     moTa: "Quê hương Bác Hồ kính yêu, sở hữu bãi biển Cửa Lò sầm uất, đồi chè Thanh Chương rợp xanh mát và Vườn quốc gia Pù Mát đa dạng sinh học.",
     thoiDiem: "• Tháng 5 - 8: Mùa biển Cửa Lò nắng ấm, nước trong.",
     diemDen: "• Khu di tích Kim Liên (Quê Bác - Nam Đàn).\n• Biển Cửa Lò & Đồi chè ốc đảo Thanh Chương.\n• Vườn quốc gia Pù Mát.",
@@ -348,7 +360,7 @@ const duLieu63TinhThanh = {
   "ha tinh": {
     ten: "Tỉnh Hà Tĩnh",
     subRegion: "bac_trung_bo", mien: "trung",
-    anh: "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=1000",
+    anh: "https://images.unsplash.com/photo-1509233725247-49e657c54213?w=1000",
     moTa: "Vùng đất lịch sử thiêng liêng Ngã ba Đồng Lộc, sở hữu bãi biển Thiên Cầm xanh ngọc êm đềm cùng danh thắng Chùa Hương Tích cổ kính.",
     thoiDiem: "• Tháng 4 - 8: Mùa tắm biển Thiên Cầm tuyệt đẹp.",
     diemDen: "• Khu di tích Ngã ba Đồng Lộc.\n• Biển Thiên Cầm & Chùa Hương Tích (Nghi Xuân).\n• Hồ Keo Gỗ.",
@@ -358,7 +370,7 @@ const duLieu63TinhThanh = {
   "quang binh": {
     ten: "Tỉnh Quảng Bình",
     subRegion: "bac_trung_bo", mien: "trung",
-    anh: "https://images.unsplash.com/photo-1544644181-1484b3fdfc62?w=1000",
+    anh: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=1000",
     moTa: "Vương quốc hang động thế giới sở hữu Di sản Phong Nha - Kẻ Bàng, Hang Sơn Đoòng lớn nhất hành tinh cùng những bãi biển cát trắng miên man.",
     thoiDiem: "• Tháng 4 - 8: Mùa nắng đẹp lý tưởng thám hiểm hang động và chèo Kayak.",
     diemDen: "• Động Phong Nha, Động Thiên Đường, Hang Sơn Đoòng.\n• Sông Chày - Hang Tối & Suối Moọc.\n• Biển Nhật Lệ & Đồi cát Quang Phú.",
@@ -368,7 +380,7 @@ const duLieu63TinhThanh = {
   "quang tri": {
     ten: "Tỉnh Quảng Trị",
     subRegion: "bac_trung_bo", mien: "trung",
-    anh: "https://images.unsplash.com/photo-1506197603052-3cc9c3a201bd?w=1000",
+    anh: "https://images.unsplash.com/photo-1476514525535-ce74f452623d?w=1000",
     moTa: "Mảnh đất anh hùng ghi dấu lịch sử đấu tranh giải phóng dân tộc với Đôi bờ Hiền Lương - Bến Hải, Địa đạo Vịnh Mốc và Đảo Cồn Cỏ hoang sơ.",
     thoiDiem: "• Tháng 4 - 8: Mùa hè khô ráo thích hợp du lịch hoài niệm lịch sử.",
     diemDen: "• Thành cổ Quảng Trị, Nghĩa trang Đường 9.\n• Đôi bờ Hiền Lương - Sông Bến Hải.\n• Địa đạo Vịnh Mốc & Đảo Cồn Cỏ.",
@@ -398,7 +410,7 @@ const duLieu63TinhThanh = {
   "quang nam": {
     ten: "Tỉnh Quảng Nam (Hội An)",
     subRegion: "nam_trung_bo", mien: "trung",
-    anh: "https://images.unsplash.com/photo-1588668214407-6ea9a6d8c272?w=1000",
+    anh: "https://images.unsplash.com/photo-1552353617-3bfd679b3bdd?w=1000",
     moTa: "Sở hữu 2 Di sản văn hóa thế giới: Phố cổ Hội An đèn lồng rực rỡ bên sông Hoài và Thánh địa Mỹ Sơn kiến trúc Chăm Pa cổ kính.",
     thoiDiem: "• Tháng 2 - 7: Tiết trời khô ráo, nắng đẹp, không mưa.",
     diemDen: "• Phố cổ Hội An & Chùa Cầu.\n• Thánh địa Mỹ Sơn cổ kính.\n• Đảo Cù Lao Chàm lặn ngắm san hô & Rừng dừa Bảy Mẫu.",
@@ -408,7 +420,7 @@ const duLieu63TinhThanh = {
   "quang ngai": {
     ten: "Tỉnh Quảng Ngãi",
     subRegion: "nam_trung_bo", mien: "trung",
-    anh: "https://images.unsplash.com/photo-1512100356356-de1b84283e18?w=1000",
+    anh: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1000",
     moTa: "Thiên đường biển đảo Đảo Lý Sơn được hình thành từ trầm tích núi lửa hàng triệu năm, mang vẻ đẹp hoang sơ tựa thiên đường.",
     thoiDiem: "• Tháng 4 - 8: Biển lặng, trời xanh ngắt lý tưởng đi tàu ra Đảo Lý Sơn.",
     diemDen: "• Đảo Lý Sơn, Cổng Tụ Vò, Đỉnh Thới Lới.\n• Bãi biển Mỹ Khê Quảng Ngãi & Thành cổ Châu Ổ.",
@@ -418,7 +430,7 @@ const duLieu63TinhThanh = {
   "binh dinh": {
     ten: "Tỉnh Bình Định (Quy Nhơn)",
     subRegion: "nam_trung_bo", mien: "trung",
-    anh: "https://images.unsplash.com/photo-1509233725247-49e657c54213?w=1000",
+    anh: "https://images.unsplash.com/photo-1512100356356-de1b84283e18?w=1000",
     moTa: "Đất võ trời văn Quy Nhơn sở hữu những bờ biển trong xanh vắt, Eo Gió ngắm hoàng hôn tuyệt đẹp và Bãi biển Kỳ Co thơ mộng.",
     thoiDiem: "• Tháng 3 - 8: Thời tiết nắng đẹp rực rỡ, biển trong như ngọc Bích.",
     diemDen: "• Eo Gió, Bãi biển Kỳ Co.\n• Tháp Bánh Ít, Tháp Đôi Chăm Pa.\n• KDL Trung Lương & Tịnh xá Ngọc Hòa.",
@@ -428,7 +440,7 @@ const duLieu63TinhThanh = {
   "phu yen": {
     ten: "Tỉnh Phú Yên",
     subRegion: "nam_trung_bo", mien: "trung",
-    anh: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1000",
+    anh: "https://images.unsplash.com/photo-1506953823976-52e1fdc0149a?w=1000",
     moTa: "Xứ sở 'Tôi thấy hoa vàng trên cỏ xanh' mê hoặc du khách bởi Ghềnh Đá Đĩa kiệt tác thiên nhiên độc nhất vô nhị cùng Mũi Điện đón ánh bình minh đầu tiên.",
     thoiDiem: "• Tháng 3 - 8: Nắng đẹp khô ráo, sóng nhẹ.",
     diemDen: "• Ghềnh Đá Đĩa độc đáo.\n• Mũi Điện (Mũi Đại Lãnh) đón bình minh.\n• Bãi Xếp, Tháp Nghinh Phong & Đầm O Loan.",
@@ -438,7 +450,7 @@ const duLieu63TinhThanh = {
   "khanh hoa": {
     ten: "Tỉnh Khánh Hòa (Nha Trang)",
     subRegion: "nam_trung_bo", mien: "trung",
-    anh: "https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=1000",
+    anh: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1000",
     moTa: "Thành phố biển Nha Trang năng động sở hữu một trong những vịnh biển đẹp nhất hành tinh, các hòn đảo nghỉ dưỡng sang trọng và suối khoáng nóng thư giãn.",
     thoiDiem: "• Tháng 1 - 8: Mùa khô chan hòa nắng ấm, biển lặng trong vắt.",
     diemDen: "• VinWonders Nha Trang & Đảo Hòn Tre.\n• Đảo Hòn Mun, Hòn Tằm lặn ngắm san hô.\n• Tháp Bà Ponagar & Đảo Điệp Sơn đường đi dưới biển.",
@@ -448,7 +460,7 @@ const duLieu63TinhThanh = {
   "ninh thuan": {
     ten: "Tỉnh Ninh Thuận",
     subRegion: "nam_trung_bo", mien: "trung",
-    anh: "https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?w=1000",
+    anh: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1000",
     moTa: "Vùng đất nắng gió độc đáo nổi tiếng với Vịnh Vĩnh Hy xanh trong kỳ ảo, những trang trại đồi cừu, vườn nho trĩu quả và tháp Chăm cổ kính.",
     thoiDiem: "• Tháng 4 - 8: Mùa nho chín trĩu quả và biển Vĩnh Hy đẹp nhất.",
     diemDen: "• Vịnh Vĩnh Hy, Hang Rái kỳ ảo.\n• Đồng cừu An Hòa, Đồi cát Nam Cương.\n• Tháp Po Klong Garai & Vườn nho Thái An.",
@@ -458,7 +470,7 @@ const duLieu63TinhThanh = {
   "binh thuan": {
     ten: "Tỉnh Bình Thuận (Phan Thiết)",
     subRegion: "nam_trung_bo", mien: "trung",
-    anh: "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?w=1000",
+    anh: "https://images.unsplash.com/photo-1509233725247-49e657c54213?w=1000",
     moTa: "Thủ phủ Resort Mũi Né nổi tiếng với những đồi cát bay mênh mông như sa mạc thu nhỏ cùng đảo hoang sơ Đảo Phú Quý cực HOT.",
     thoiDiem: "• Quanh năm nắng ấm, tuyệt nhất từ tháng 12 đến tháng 6.",
     diemDen: "• Đồi Cát Bay, Bàu Trắng Mũi Né.\n• Đảo Phú Quý hoang sơ trong vắt.\n• Hải đăng Keo Gà & Tháp Poshanư.",
@@ -468,7 +480,7 @@ const duLieu63TinhThanh = {
   "kon tum": {
     ten: "Tỉnh Kon Tum",
     subRegion: "tay_nguyen", mien: "trung",
-    anh: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=1000",
+    anh: "https://images.unsplash.com/photo-1511497584788-876761c11969?w=1000",
     moTa: "Vùng đất cực Bắc Tây Nguyên sở hữu thị trấn se lạnh Măng Đen - 'Đà Lạt thứ hai', cùng Nhà thờ Gỗ trăm năm tuổi mang đậm dấu ấn Tây Nguyên.",
     thoiDiem: "• Tháng 11 - 3: Mùa hoa dã quỳ, hoa mai anh đào nở rộ khắp núi rừng.",
     diemDen: "• Khu du lịch sinh thái Măng Đen (Hồ Đăk Ke, Thác Pa Sỹ).\n• Nhà thờ Gỗ Kon Tum trăm năm tuổi.\n• Tòa Giám Mục Kon Tum & Cầu treo Kon Klor.",
@@ -478,7 +490,7 @@ const duLieu63TinhThanh = {
   "gia lai": {
     ten: "Tỉnh Gia Lai",
     subRegion: "tay_nguyen", mien: "trung",
-    anh: "https://images.unsplash.com/photo-1426604966848-d7adac402bff?w=1000",
+    anh: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=1000",
     moTa: "Phố núi Pleiku lãng mạn sở hữu 'Đôi mắt Pleiku' Biển Hồ T'Nưng xanh veo phẳng lặng cùng ngọn núi lửa Chư Đăng Ya rực rỡ sắc vàng dã quỳ.",
     thoiDiem: "• Tháng 11 - 2: Mùa hoa dã quỳ nở rực rỡ và mùa cạn đẹp nhất.",
     diemDen: "• Biển Hồ T'Nưng (Hồ Chư Đăng Ya).\n• Núi lửa Chư Đăng Ya & Chùa Minh Thành hoành tráng.\n• Biển Hồ Chè & Hàng cây thông trăm tuổi.",
@@ -488,7 +500,7 @@ const duLieu63TinhThanh = {
   "dak lak": {
     ten: "Tỉnh Đắc Lắc",
     subRegion: "tay_nguyen", mien: "trung",
-    anh: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1000",
+    anh: "https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?w=1000",
     moTa: "Thủ phủ Cà phê Buôn Ma Thuột đậm đà bản sắc Tây Nguyên với không gian văn hóa cồng chiêng, những ngọn thác cuồn cuộn và văn hóa cưỡi voi Buôn Đôn.",
     thoiDiem: "• Tháng 12 - 3: Mùa hoa cà phê nở trắng xóa đồi núi.",
     diemDen: "• Bảo tàng Thế giới Cà phê hoành tráng.\n• KDL Buôn Đôn & Làng cà phê Trung Nguyên.\n• Cụm thác Dray Nur - Dray Sap.",
@@ -498,7 +510,7 @@ const duLieu63TinhThanh = {
   "dak nong": {
     ten: "Tỉnh Đắk Nông",
     subRegion: "tay_nguyen", mien: "trung",
-    anh: "https://images.unsplash.com/photo-1439853949127-fa647821eba0?w=1000",
+    anh: "https://images.unsplash.com/photo-1426604966848-d7adac402bff?w=1000",
     moTa: "Nơi sở hữu Hồ Tà Đùng - 'Vịnh Hạ Long trên Tây Nguyên' tuyệt đẹp với hơn 40 đảo lớn nhỏ cùng Hệ thống Hang động núi lửa Krông Nô độc đáo.",
     thoiDiem: "• Tháng 11 - 4: Mùa tích nước hồ Tà Đùng xanh mướt ngợp mắt.",
     diemDen: "• Hồ Tà Đùng ngắm toàn cảnh đảo lớn nhỏ.\n• Thác Liêng Nung hùng vĩ.\n• Công viên địa chất toàn cầu Đắk Nông.",
@@ -508,7 +520,7 @@ const duLieu63TinhThanh = {
   "lam dong": {
     ten: "Tỉnh Lâm Đồng (Đà Lạt)",
     subRegion: "tay_nguyen", mien: "trung",
-    anh: "https://images.unsplash.com/photo-1501854140801-50d01698950b?w=1000",
+    anh: "https://images.unsplash.com/photo-1511497584788-876761c11969?w=1000",
     moTa: "Thành phố sương mờ Đà Lạt mộng mơ - thiên đường nghỉ dưỡng bậc nhất cả nước với không khí se lạnh quanh năm, rừng thông và ngàn hoa khoe sắc.",
     thoiDiem: "• Tháng 11 - 3: Mùa mai anh đào, săn mây bồng bềnh và tiết trời se lạnh.",
     diemDen: "• Hồ Xuân Hương, Hồ Tuyền Lâm.\n• Quảng trường Lâm Viên, Đồi chè Cầu Đất.\n• Thác Datanla & Langbiang.",
@@ -530,7 +542,7 @@ const duLieu63TinhThanh = {
   "can tho": {
     ten: "Thành phố Cần Thơ",
     subRegion: "tay_nam_bo", mien: "nam",
-    anh: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1000",
+    anh: "https://images.unsplash.com/photo-1528127269322-539801943592?w=1000",
     moTa: "Thủ phủ Miền Tây sông nước nổi tiếng với trải nghiệm Chợ nổi Cái Răng, Bến Ninh Kiều lung linh và các khu vườn trái cây miệt vườn trù phú.",
     thoiDiem: "• Tháng 6 - 8: Mùa trái cây chín rộ mọng nước.",
     diemDen: "• Chợ nổi Cái Răng sôi động sáng sớm.\n• Bến Ninh Kiều & Cầu Tình Yêu.\n• Nhà cổ Bình Thủy & Cồn Sơn.",
@@ -540,7 +552,7 @@ const duLieu63TinhThanh = {
   "ba ria - vung tau": {
     ten: "Tỉnh Bà Rịa - Vũng Tàu",
     subRegion: "dong_nam_bo", mien: "nam",
-    anh: "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=1000",
+    anh: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1000",
     moTa: "Thành phố biển Vũng Tàu nhộn nhịp cùng thiên đường biển ngọc thiêng liêng Côn Đảo hoang sơ xanh trong vắt.",
     thoiDiem: "• Quanh năm, cực kỳ thuận tiện đi nghỉ dưỡng cuối tuần.",
     diemDen: "• Tượng Chúa Kito Vũng Tàu, Bãi Sau, Bãi Trước.\n• Hải đăng Vũng Tàu & Quần đảo Côn Đảo (Nghĩa trang Hàng Dương).",
@@ -550,7 +562,7 @@ const duLieu63TinhThanh = {
   "binh duong": {
     ten: "Tỉnh Bình Dương",
     subRegion: "dong_nam_bo", mien: "nam",
-    anh: "https://images.unsplash.com/photo-1513151233558-d860c5398176?w=1000",
+    anh: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1000",
     moTa: "Nổi tiếng với Khu du lịch Đại Nam quy mô hoành tráng, vườn trái cây Lái Thiêu trù phú và làng nghề gốm sứ truyền thống.",
     thoiDiem: "• Tháng 5 - 8: Mùa thu hoạch măng cụt và trái cây Lái Thiêu.",
     diemDen: "• Khu du lịch Lạc Cảnh Đại Nam Văn Hiến.\n• Chùa Bà Thiên Hậu & Vườn trái cây Lái Thiêu.\n• Chùa Tây Tạng.",
@@ -560,7 +572,7 @@ const duLieu63TinhThanh = {
   "binh phuoc": {
     ten: "Tỉnh Bình Phước",
     subRegion: "dong_nam_bo", mien: "nam",
-    anh: "https://images.unsplash.com/photo-1473448912268-2022ce9509d8?w=1000",
+    anh: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=1000",
     moTa: "Thủ phủ hạt điều Việt Nam với danh thắng Núi Bà Rá hoang sơ, lòng hồ Thác Mơ lung linh và Vườn quốc gia Bù Gia Mập.",
     thoiDiem: "• Tháng 12 - 4: Mùa khô thích hợp trekking và khám phá rừng.",
     diemDen: "• Núi Bà Rá (Thác Mơ) đi cáp treo ngoạn cảnh.\n• Vườn quốc gia Bù Gia Mập nguyên sơ.\n• Trảng cỏ Bàu Lách.",
@@ -570,7 +582,7 @@ const duLieu63TinhThanh = {
   "dong nai": {
     ten: "Tỉnh Đồng Nai",
     subRegion: "dong_nam_bo", mien: "nam",
-    anh: "https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=1000",
+    anh: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=1000",
     moTa: "Điểm đến trekking Vườn quốc gia Cát Tiên - Di sản khu dự trữ sinh quyển thế giới, cắm trại Hồ Trị An chill cùng bãi đá KDL Bửu Long.",
     thoiDiem: "• Tháng 12 - 5: Mùa khô thích hợp trải nghiệm đi rừng Cát Tiên.",
     diemDen: "• Vườn quốc gia Cát Tiên ngắm thú đêm.\n• Hồ Trị An & Đảo Ó cắm trại.\n• Khu du lịch Bửu Long (Hạ Long thu nhỏ).",
@@ -580,7 +592,7 @@ const duLieu63TinhThanh = {
   "tay ninh": {
     ten: "Tỉnh Tây Ninh",
     subRegion: "dong_nam_bo", mien: "nam",
-    anh: "https://images.unsplash.com/photo-1565008447742-97f6f38c985c?w=1000",
+    anh: "https://images.unsplash.com/photo-1519817650390-64a93db51149?w=1000",
     moTa: "Nóc nhà Nam Bộ 'Núi Bà Đen' cao 986m săn mây tuyệt đẹp, kiến trúc Tòa Thánh Tây Ninh độc đáo và không gian Hồ Dầu Tiếng rộng lớn.",
     thoiDiem: "• Tháng 1 - 3 âm lịch: Mùa hội xuân Núi Bà Đen linh thiêng.",
     diemDen: "• Quần thể Cáp treo Núi Bà Đen đi ngắm tượng Phật Bà.\n• Tòa Thánh Tây Ninh kiến trúc Đạo Cao Đài.\n• Hồ Dầu Tiếng & Ma Thiên Lãnh.",
@@ -590,7 +602,7 @@ const duLieu63TinhThanh = {
   "an giang": {
     ten: "Tỉnh An Giang",
     subRegion: "tay_nam_bo", mien: "nam",
-    anh: "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=1000",
+    anh: "https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=1000",
     moTa: "Rừng tràm Trà Sư xanh mướt bèo tấm, vùng đất Thất Sơn huyền bí và trung tâm tâm linh Miếu Bà Chúa Xứ Núi Sam nức tiếng.",
     thoiDiem: "• Tháng 9 - 11: Mùa nước nổi rừng tràm Trà Sư đẹp nhất.",
     diemDen: "• Rừng tràm Trà Sư đi xuồng ba lá.\n• Miếu Bà Chúa Xứ Núi Sam Châu Đốc.\n• Núi Cấm (Cấm Sơn) & Hồ Tà Pạ.",
@@ -600,7 +612,7 @@ const duLieu63TinhThanh = {
   "bac lieu": {
     ten: "Tỉnh Bạc Liêu",
     subRegion: "tay_nam_bo", mien: "nam",
-    anh: "https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=1000",
+    anh: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1000",
     moTa: "Gắn liền với giai thoại Công tử Bạc Liêu, nhạc sĩ Cao Văn Lầu và Cánh đồng quạt gió ven biển cực Chill thu hút giới trẻ check-in.",
     thoiDiem: "• Quanh năm, tiết trời nắng ấm chan hòa.",
     diemDen: "• Nhà Công tử Bạc Liêu cổ kính.\n• Cánh đồng điện gió Bạc Liêu.\n• Chùa Xiêm Cán kiến trúc Khmer & Khu lưu niệm Cao Văn Lầu.",
@@ -610,7 +622,7 @@ const duLieu63TinhThanh = {
   "ben tre": {
     ten: "Tỉnh Bến Tre",
     subRegion: "tay_nam_bo", mien: "nam",
-    anh: "https://images.unsplash.com/photo-1530587191325-3db32d826c18?w=1000",
+    anh: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1000",
     moTa: "Xứ sở Dừa xanh rợp bóng mát, mang đậm chất sinh thái miệt vườn với trải nghiệm chèo xuồng rạch dừa nước róc rách.",
     thoiDiem: "• Tháng 6 - 8: Mùa trái cây miệt vườn xum xuê.",
     diemDen: "• Cồn Phụng, Cồn Quy.\n• Vườn trái cây Cái Mơn Chợ Lách.\n• Khu du lịch Lan Vương dã ngoại.",
@@ -620,7 +632,7 @@ const duLieu63TinhThanh = {
   "ca mau": {
     ten: "Tỉnh Cà Mau",
     subRegion: "tay_nam_bo", mien: "nam",
-    anh: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=1000",
+    anh: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1000",
     moTa: "Mảnh đất Đất Mũi tận cùng cực Nam Tổ quốc, nơi có mốc tọa độ GPS 0001 giữa bạt ngàn rừng đước, rừng tràm U Minh Hạ.",
     thoiDiem: "• Tháng 12 - 4: Mùa khô di chuyển đường sông nước thuận lợi.",
     diemDen: "• Mũi Cà Mau & Cột cờ Hà Nội tại Đất Mũi.\n• Vườn quốc gia U Minh Hạ.\n• Hòn Đá Bạc & Đầm Thị Tường.",
@@ -630,7 +642,7 @@ const duLieu63TinhThanh = {
   "dong thap": {
     ten: "Tỉnh Đồng Tháp",
     subRegion: "tay_nam_bo", mien: "nam",
-    anh: "https://images.unsplash.com/photo-1508873696983-2df515122519?w=1000",
+    anh: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=1000",
     moTa: "Đất Sen Hồng rực rỡ với Làng hoa Sa Đéc hàng trăm năm tuổi ngát hương, Khu sinh thái Xẻo Quýt và Đồng sen Tháp Mười.",
     thoiDiem: "• Tháng 12: Mùa hoa Sa Đéc nở rực rỡ nhất chuẩn bị đón Tết.\n• Tháng 9 - 11: Mùa nước nổi ngắm hoa sen.",
     diemDen: "• Làng hoa kiểng Sa Đéc.\n• Khu du lịch sinh thái Xẻo Quýt & Vườn quốc gia Tràm Chim.\n• Đồng sen Tháp Mười.",
@@ -640,7 +652,7 @@ const duLieu63TinhThanh = {
   "hau giang": {
     ten: "Tỉnh Hậu Giang",
     subRegion: "tay_nam_bo", mien: "nam",
-    anh: "https://images.unsplash.com/photo-1511556532299-8f662fc26c06?w=1000",
+    anh: "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=1000",
     moTa: "Mảnh đất sông nước êm đềm nổi tiếng với Lung Ngọc Hoàng - 'lá phổi xanh' Miền Tây cùng đặc sản Khóm Cầu Đúc.",
     thoiDiem: "• Tháng 9 - 11: Mùa nước nổi sinh thái xanh thanh bình.",
     diemDen: "• Khu bảo tồn thiên nhiên Lung Ngọc Hoàng.\n• Chợ nổi Ngã Bảy (Phụng Hiệp).\n• Công viên Giải trí Kittydangoo.",
@@ -660,7 +672,7 @@ const duLieu63TinhThanh = {
   "long an": {
     ten: "Tỉnh Long An",
     subRegion: "tay_nam_bo", mien: "nam",
-    anh: "https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?w=1000",
+    anh: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1000",
     moTa: "Cửa ngõ kết nối TP.HCM với Miền Tây sông nước sở hữu Làng nổi Tân Lập rợp bóng rừng tràm ngút ngàn tuyệt đẹp.",
     thoiDiem: "• Tháng 9 - 11: Mùa nước nổi đi thuyền xuyên rừng tràm Tân Lập.",
     diemDen: "• Khu du lịch sinh thái Làng nổi Tân Lập.\n• Làng cổ Phước Lộc Thọ.\n• Công viên Bến Lức & Cánh đồng thuốc Đồng Tháp Mười.",
@@ -670,7 +682,7 @@ const duLieu63TinhThanh = {
   "soc trang": {
     ten: "Tỉnh Sóc Trăng",
     subRegion: "tay_nam_bo", mien: "nam",
-    anh: "https://images.unsplash.com/photo-1548013146-72479768bbaa?w=1000",
+    anh: "https://images.unsplash.com/photo-1519817650390-64a93db51149?w=1000",
     moTa: "Xứ sở giao thoa văn hóa Kinh - Khmer - Hoa với những ngôi chùa Khmer kiến trúc dát vàng nguy nga lộng lẫy và lễ hội Đua ghe Ngo náo nhiệt.",
     thoiDiem: "• Tháng 10 - 11 âm lịch: Lễ hội Ok Om Bok & Đua ghe Ngo.",
     diemDen: "• Chùa Dơi (Chùa Mahatup).\n• Chùa Chén Kiểu (Chùa Sà Lôn).\n• Chùa Som Rong dát vàng hoành tráng & Cồn Mỹ Phước.",
@@ -680,7 +692,7 @@ const duLieu63TinhThanh = {
   "tien giang": {
     ten: "Tỉnh Tiền Giang",
     subRegion: "tay_nam_bo", mien: "nam",
-    anh: "https://images.unsplash.com/photo-1526772662000-3f88f10405ff?w=1000",
+    anh: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1000",
     moTa: "Vùng đất miệt vườn trù phú ven Sông Tiền nổi tiếng với Cù lao Thới Sơn, Chùa Vĩnh Tràng kiến trúc lai Âu - Á và chợ nổi Cái Bè.",
     thoiDiem: "• Tháng 5 - 8: Mùa trái cây miệt vườn chín rộ ngọt lịm.",
     diemDen: "• Cù lao Thới Sơn (Lội mương bắt cá, nghe đàn ca tài tử).\n• Chùa Vĩnh Tràng cổ kính.\n• Chợ nổi Cái Bè & Biển Tân Thành.",
@@ -690,7 +702,7 @@ const duLieu63TinhThanh = {
   "tra vinh": {
     ten: "Tỉnh Trà Vinh",
     subRegion: "tay_nam_bo", mien: "nam",
-    anh: "https://images.unsplash.com/photo-1516483638261-f4dbaf036963?w=1000",
+    anh: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=1000",
     moTa: "Thành phố rợp bóng cây cổ thụ trăm năm tuổi, danh thắng Ao Bà Om mát rượi và nền văn hóa Khmer đậm đà bản sắc.",
     thoiDiem: "• Tháng 4 (Tết Chôl Chnăm Thmây) hoặc Tháng 10 âm lịch (Lễ Ok Om Bok).",
     diemDen: "• Danh thắng Ao Bà Om rợp bóng cây cổ thụ.\n• Chùa Hang (Chùa Kom Pong Chray).\n• Biển Ba Động & Cù lao Long Trị.",
@@ -700,7 +712,7 @@ const duLieu63TinhThanh = {
   "vinh long": {
     ten: "Tỉnh Vĩnh Long",
     subRegion: "tay_nam_bo", mien: "nam",
-    anh: "https://images.unsplash.com/photo-1528164344705-47542687990d?w=1000",
+    anh: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=1000",
     moTa: "Nổi tiếng với Vương quốc gạch gốm đỏ Mang Thít trăm năm bên dòng sông cổ kính và thiên đường miệt vườn Cù lao An Bình.",
     thoiDiem: "• Tháng 5 - 8: Mùa thu hoạch trái cây chôm chôm, nhãn tại Cù lao An Bình.",
     diemDen: "• Làng gốm đỏ Mang Thít (Di sản đương đại).\n• Cù lao An Bình ghé vườn trái cây.\n• Chùa Tiên Châu cổ kính.",
@@ -831,7 +843,7 @@ app.post('/', (req, res) => {
   }
 
   // 4.3 Phân chia vùng miền lớn sang tiểu vùng
-  if (queryNorm.includes("mien bac")) {
+  if (queryNorm === "mien bac" || queryNorm.includes("mien bac")) {
     return res.json({
       fulfillmentMessages: [
         {
@@ -858,7 +870,7 @@ app.post('/', (req, res) => {
     });
   }
 
-  if (queryNorm.includes("mien trung")) {
+  if (queryNorm === "mien trung" || queryNorm.includes("mien trung")) {
     return res.json({
       fulfillmentMessages: [
         {
@@ -885,7 +897,7 @@ app.post('/', (req, res) => {
     });
   }
 
-  if (queryNorm.includes("mien nam")) {
+  if (queryNorm === "mien nam" || queryNorm.includes("mien nam")) {
     return res.json({
       fulfillmentMessages: [
         {
@@ -911,9 +923,10 @@ app.post('/', (req, res) => {
     });
   }
 
-  // Xử lý tiểu vùng -> Xuất nút bấm từng tỉnh
-  for (const subKey in danhSachSubRegions) {
-    if (queryNorm.includes(subKey.replace(/_/g, ' ')) || queryNorm.includes(subKey)) {
+  // Xử lý tiểu vùng khi người dùng nhấn vào Quick Reply có kèm thông tin chi tiết
+  for (const subKey in subRegionKeywords) {
+    const keywords = subRegionKeywords[subKey];
+    if (keywords.some(kw => queryNorm.includes(kw))) {
       const provinceList = danhSachSubRegions[subKey];
       return res.json({
         fulfillmentMessages: [
