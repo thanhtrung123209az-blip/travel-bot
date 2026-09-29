@@ -848,7 +848,7 @@ const duLieu63TinhThanh = {
 };
 
 // =========================================================================
-// 4. DIALOGFLOW WEBHOOK ROUTER THÔNG MINH
+// 4. DIALOGFLOW WEBHOOK ROUTER THÔNG MINH (XƯNG HÔ TÔI - BẠN CHUYÊN NGHIỆP)
 // =========================================================================
 
 app.post('/', (req, res) => {
@@ -865,15 +865,15 @@ app.post('/', (req, res) => {
         {
           text: {
             text: [
-              `🌟 **BÁCH KHOA TOÀN THƯ DU LỊCH VIỆT NAM (63 TỈNH THÀNH)** 🌟\n\n` +
-              `Chào bạn! Em là Chắt Bot Du Lịch Thông Minh. Em có thể tư vấn đầy đủ về địa điểm, ăn uống đặc sản, hoạt động vui chơi, chi phí và lịch trình du lịch cho trọn bộ **63 tỉnh thành** từ Bắc vào Nam!\n\n` +
-              `👉 **Bạn hãy chọn chức năng hoặc vùng miền bên dưới để bắt đầu:**`
+              `🤖 **TRỢ LÝ DU LỊCH VIỆT NAM (bot_travel)**\n\n` +
+              `Xin chào bạn! Tôi là bot_travel - Trợ lý tư vấn du lịch thông minh. Tôi luôn sẵn sàng hỗ trợ bạn tra cứu đầy đủ thông tin về điểm đến, đặc sản ẩm thực, trải nghiệm nổi bật, dự toán chi phí và lịch trình tham quan chi tiết cho trọn bộ **63 tỉnh thành** trên khắp Việt Nam.\n\n` +
+              `👉 **Xin vui lòng chọn danh mục hoặc khu vực bạn muốn khám phá bên dưới:**`
             ]
           }
         },
         {
           quickReplies: {
-            title: "👇 Bấm chọn danh mục khám phá:",
+            title: "👇 Chọn danh mục khám phá:",
             quickReplies: [
               "Miền Bắc",
               "Miền Trung",
@@ -895,8 +895,8 @@ app.post('/', (req, res) => {
         {
           text: {
             text: [
-              `⬅️ **ĐÃ QUAY LẠI MENU KHÁM PHÁ DU LỊCH**\n\n` +
-              `Vui lòng chọn vùng miền hoặc chủ đề bạn muốn tiếp tục tra cứu:`
+              `⬅️ **QUAY LẠI MENU KHÁM PHÁ**\n\n` +
+              `Xin vui lòng chọn khu vực hoặc chủ đề du lịch tiếp theo mà bạn muốn tra cứu:`
             ]
           }
         },
@@ -925,13 +925,14 @@ app.post('/', (req, res) => {
         {
           text: {
             text: [
-              `🏍️ **TOP TỈNH THÀNH PHƯỢT & MẠO HIỂM HÀNG ĐẦU VIỆT NAM:**\n\n` +
+              `🏍️ **GỢI Ý PHƯỢT & MẠO HIỂM HÀNG ĐẦU VIỆT NAM**\n\n` +
+              `Dưới đây là các điểm đến phượt hàng đầu tôi tổng hợp dành cho bạn:\n\n` +
               `1. **Hà Giang:** Chinh phục đèo Mã Pí Lèng & Chèo thuyền Sông Nho Quế.\n` +
               `2. **Quảng Bình:** Thám hiểm hệ thống hang động Phong Nha - Kẻ Bàng.\n` +
               `3. **Sơn La (Tà Xùa):** Săn mây cuồn cuộn trên sống lưng khủng long.\n` +
               `4. **Yên Bái (Mù Cang Chải):** Nhảy dù lượn 'Bay trên mùa vàng'.\n` +
-              `5. **Cao Bằng:** Ngắm thác Bản Giốc hùng vĩ biên giới.\n\n` +
-              `👇 Chọn tỉnh thành bên dưới để xem cẩm nang chi tiết:`
+              `5. **Cao Bằng:** Ngắm thác Bản Giốc hùng vĩ vùng biên cương.\n\n` +
+              `👇 Bạn vui lòng chọn tỉnh thành bên dưới để xem cẩm nang chi tiết:`
             ]
           }
         },
@@ -951,13 +952,14 @@ app.post('/', (req, res) => {
         {
           text: {
             text: [
-              `🏖️ **TOP THIÊN ĐƯỜNG NGHỈ DƯỠNG BIỂN ĐẢO HÀNG ĐẦU:**\n\n` +
+              `🏖️ **GỢI Ý THIÊN ĐƯỜNG NGHỈ DƯỠNG BIỂN ĐẢO**\n\n` +
+              `Dưới đây là những thiên đường nghỉ dưỡng hàng đầu dành cho bạn:\n\n` +
               `1. **Kiên Giang (Phú Quốc):** Đảo Ngọc biển xanh trong suốt & Sunset Town.\n` +
               `2. **Đà Nẵng:** Bãi biển Mỹ Khê top thế giới & Bà Nà Hills.\n` +
               `3. **Khánh Hòa (Nha Trang):** Vịnh biển thiên đường giải trí & Tắm bùn.\n` +
               `4. **Bình Định (Quy Nhơn):** Biển Kỳ Co & Hoàng hôn Eo Gió.\n` +
               `5. **Lâm Đồng (Đà Lạt):** Nghỉ dưỡng núi rừng không khí se lạnh.\n\n` +
-              `👇 Chọn tỉnh thành bên dưới để xem cẩm nang chi tiết:`
+              `👇 Bạn vui lòng chọn tỉnh thành bên dưới để xem cẩm nang chi tiết:`
             ]
           }
         },
@@ -977,13 +979,14 @@ app.post('/', (req, res) => {
         {
           text: {
             text: [
-              `🍲 **TOP THIÊN ĐƯỜNG FOODTOUR ẨM THỰC BÁCH KHOA:**\n\n` +
+              `🍲 **GỢI Ý THIÊN ĐƯỜNG FOODTOUR ẨM THỰC**\n\n` +
+              `Dưới đây là các tọa độ ẩm thực nổi tiếng tôi gợi ý cho bạn:\n\n` +
               `1. **Hải Phòng:** Bánh đa cua, Bánh mì que, Dừa dầm.\n` +
               `2. **Hà Nội:** Phở Bát Đàn, Bún chả Hàng Mành, Cà phê trứng.\n` +
               `3. **Thừa Thiên Huế:** Bún bò Huế gốc, Bánh bèo, Nậm, Lọc, Cơm hến.\n` +
               `4. **TP. Hồ Chí Minh:** Cơm tấm sườn nướng, Hủ tiếu Nam Vang, Phá lấu.\n` +
               `5. **Cần Thơ:** Lẩu mắm, Bánh xèo củ hủ dừa, Bánh hỏi thịt quay.\n\n` +
-              `👇 Chọn tỉnh thành bên dưới để xem cẩm nang ẩm thực:`
+              `👇 Bạn vui lòng chọn thành phố bên dưới để xem chi tiết danh mục ẩm thực:`
             ]
           }
         },
@@ -1004,8 +1007,8 @@ app.post('/', (req, res) => {
         {
           text: {
             text: [
-              `🗺️ **DANH SÁCH KHU VỰC MIỀN BẮC (25 TỈNH THÀNH)**\n\n` +
-              `Vui lòng chọn Tiểu Vùng bên dưới để xem danh sách tỉnh thành đầy đủ:`
+              `🗺️ **DANH MỤC KHU VỰC MIỀN BẮC (25 TỈNH THÀNH)**\n\n` +
+              `Xin vui lòng chọn Tiểu Vùng bên dưới để tra cứu danh sách tỉnh thành tương ứng:`
             ]
           }
         },
@@ -1031,8 +1034,8 @@ app.post('/', (req, res) => {
         {
           text: {
             text: [
-              `🗺️ **DANH SÁCH KHU VỰC MIỀN TRUNG & TÂY NGUYÊN (19 TỈNH THÀNH)**\n\n` +
-              `Vui lòng chọn Tiểu Vùng bên dưới:`
+              `🗺️ **DANH MỤC KHU VỰC MIỀN TRUNG & TÂY NGUYÊN (19 TỈNH THÀNH)**\n\n` +
+              `Xin vui lòng chọn Tiểu Vùng bên dưới để tiếp tục:`
             ]
           }
         },
@@ -1058,8 +1061,8 @@ app.post('/', (req, res) => {
         {
           text: {
             text: [
-              `🗺️ **DANH SÁCH KHU VỰC MIỀN NAM (19 TỈNH THÀNH)**\n\n` +
-              `Vui lòng chọn Tiểu Vùng bên dưới:`
+              `🗺️ **DANH MỤC KHU VỰC MIỀN NAM (19 TỈNH THÀNH)**\n\n` +
+              `Xin vui lòng chọn Tiểu Vùng bên dưới để tiếp tục:`
             ]
           }
         },
@@ -1088,8 +1091,8 @@ app.post('/', (req, res) => {
           {
             text: {
               text: [
-                `📍 **DANH SÁCH TỈNH THÀNH VÙNG ${subKey.toUpperCase().replace(/_/g, ' ')} (${provinceList.length} TỈNH):**\n\n` +
-                `Hãy bấm chọn tỉnh bạn muốn tra cứu bách khoa du lịch:`
+                `📍 **DỮ LIỆU VÙNG ${subKey.toUpperCase().replace(/_/g, ' ')} (${provinceList.length} TỈNH THÀNH)**\n\n` +
+                `Bạn vui lòng chọn tỉnh thành muốn tra cứu thông tin du lịch:`
               ]
             }
           },
@@ -1127,7 +1130,7 @@ app.post('/', (req, res) => {
     }
   }
 
-  // 4.6 TRẢ VỀ CẨM NANG BÁCH KHOA TOÀN THƯ TỈNH THÀNH CHI TIẾT
+  // 4.6 TRẢ VỀ CẨM NANG DU LỊCH CHI TIẾT
   if (matchedProvinceKey) {
     const province = duLieu63TinhThanh[matchedProvinceKey];
     return res.json({
@@ -1135,26 +1138,26 @@ app.post('/', (req, res) => {
         {
           text: {
             text: [
-              `📖 **CẨM NANG DU LỊCH BÁCH KHOA: ${province.ten.toUpperCase()}**\n\n` +
-              `✨ **Giới thiệu tổng quan:**\n${province.moTa}\n\n` +
+              `🌐 **CẨM NANG DU LỊCH: ${province.ten.toUpperCase()}**\n\n` +
+              `✨ **Tổng quan điểm đến:**\n${province.moTa}\n\n` +
               `🗓️ **Thời điểm du lịch lý tưởng:**\n${province.thoiDiem}\n\n` +
               `🏛️ **Địa điểm tham quan nổi bật:**\n${province.diemDen}\n\n` +
-              `🎡 **Hoạt động trải nghiệm không thể bỏ qua:**\n${province.hoatDong}\n\n` +
-              `🍲 **Ẩm thực đặc sản trứ danh:**\n${province.dacSan}\n\n` +
+              `🎡 **Trải nghiệm không thể bỏ qua:**\n${province.hoatDong}\n\n` +
+              `🍲 **Ẩm thực & Đặc sản trứ danh:**\n${province.dacSan}\n\n` +
               `💰 **Dự toán chi phí tham khảo:** ${province.chiPhi}\n\n` +
-              `🗺️ **Gợi ý lịch trình mẫu (3N2Đ):**\n${province.lichTrinh}`
+              `🗺️ **Gợi ý lịch trình chi tiết (3N2Đ):**\n${province.lichTrinh}`
             ]
           }
         },
         {
           image: {
             imageUri: province.anh,
-            accessibilityText: `Ảnh danh thắng phong cảnh ${province.ten}`
+            accessibilityText: `Hình ảnh cảnh đẹp du lịch tại ${province.ten}`
           }
         },
         {
           quickReplies: {
-            title: "👇 Bạn muốn khám phá thêm điều gì?",
+            title: "👇 Bạn có muốn xem thêm gợi ý khác?",
             quickReplies: [
               "Gợi ý Phượt Mạo Hiểm",
               "Gợi ý Nghỉ Dưỡng Biển",
@@ -1168,7 +1171,7 @@ app.post('/', (req, res) => {
     });
   }
 
-  // 4.7 FALLBACK LỊCH SỰ, THÔNG MINH KÈM GỢI Ý & NÚT QUAY LẠI
+  // 4.7 FALLBACK LỊCH SỰ, CHUYÊN NGHIỆP KÈM GỢI Ý
   let closestGuesses = [];
   for (const key in duLieu63TinhThanh) {
     const dist = levenshteinDistance(queryNorm, loaiBoDau(duLieu63TinhThanh[key].ten));
@@ -1185,8 +1188,9 @@ app.post('/', (req, res) => {
       {
         text: {
           text: [
-            `🧐 **Em chưa tìm thấy thông tin chính xác cho từ khóa của bạn.**\n\n` +
-            `Có phải bạn đang quan tâm đến một trong những địa danh nổi tiếng dưới đây không? Bạn hãy bấm chọn nút bấm nhanh để xem thông tin chi tiết nhé:`
+            `🧐 **TRỢ LÝ TƯ VẤN DU LỊCH:**\n\n` +
+            `Tôi chưa tìm thấy thông tin chính xác theo từ khóa bạn vừa nhập.\n\n` +
+            `Có phải bạn đang quan tâm đến một trong các địa danh nổi tiếng bên dưới không? Xin vui lòng chọn nút bấm nhanh để tôi gửi thông tin chi tiết đến bạn:`
           ]
         }
       },
@@ -1202,5 +1206,5 @@ app.post('/', (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`🚀 [FULL 63 PROVINCES ENCYCLOPEDIA WEBHOOK SERVER READY] Port ${PORT}`);
+  console.log(`🚀 [bot_travel WEBHOOK SERVER READY] Port ${PORT}`);
 });
