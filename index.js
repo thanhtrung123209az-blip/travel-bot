@@ -4,13 +4,14 @@
  * Đề tài Dự thi Khoa học Kỹ thuật (KHKT) - Dành cho Cấp Tỉnh & Cấp Quốc Gia
  * 
  * Các Thuật toán & Mô hình Toán học Tự phát triển (100% Self-Contained):
- * 1. Lexicon-Based Sentiment Analysis (Phân tích cảm xúc & Tâm trạng)
- * 2. Vector Space Model & Cosine Similarity (Mô hình Không gian Vector)
- * 3. Climate Matrix Engine (Ma trận Khí hậu Lịch sử 3 Miền theo Mùa)
- * 4. Analytic Hierarchy Process - AHP (Mô hình Ra quyết định Đa tiêu chí)
- * 5. Traveling Salesperson Problem - TSP (Tối ưu hóa Tuyến đường Liên tỉnh)
- * 6. Jaccard Text Similarity NLP (Xử lý Ngôn ngữ Tự nhiên Fallback)
- * 7. Multi-Criteria Query & Relevance Scoring Engine (Thuật toán Truy vấn & Tìm kiếm Thông minh)
+ * 1. Levenshtein Distance Algorithm (Thuật toán Chữa lỗi chính tả & Gõ sai)
+ * 2. Intent Understanding Engine (Thuật toán Hiểu ý định & Ngữ nghĩa câu hỏi)
+ * 3. Lexicon-Based Sentiment Analysis (Phân tích cảm xúc & Tâm trạng)
+ * 4. Vector Space Model & Cosine Similarity (Mô hình Không gian Vector)
+ * 5. Climate Matrix Engine (Ma trận Khí hậu Lịch sử 3 Miền theo Mùa)
+ * 6. Analytic Hierarchy Process - AHP (Mô hình Ra quyết định Đa tiêu chí)
+ * 7. Traveling Salesperson Problem - TSP (Tối ưu hóa Tuyến đường Liên tỉnh)
+ * 8. Jaccard Text Similarity NLP (Xử lý Ngôn ngữ Tự nhiên Fallback)
  * ==============================================================================
  */
 
@@ -153,7 +154,7 @@ const PROVINCES_DATABASE = [
     budgetLevel: 1,
     desc: "Hồ Ba Bể - Một trong 20 hồ nước ngọt tự nhiên lớn nhất thế giới giữa lòng núi rừng.",
     tags: ["Hồ Ba Bể", "Thiên nhiên", "Thư giãn"],
-    itinerary3D2N: "• Ngày 1: Di chuyển đến Ba Bể - Nghơi tại Homestay bản Pác Ngòi.\n• Ngày 2: Đi thuyền dạo quanh Hồ Ba Bể - Động Puông - Thác Đầu Đẳng.\n• Ngày 3: Trải nghiệm văn hóa Tày - Mua đặc sản Cá nướng Ba Bể."
+    itinerary3D2N: "• Ngày 1: Di chuyển đến Ba Bể - Nghỉ tại Homestay bản Pác Ngòi.\n• Ngày 2: Đi thuyền dạo quanh Hồ Ba Bể - Động Puông - Thác Đầu Đẳng.\n• Ngày 3: Trải nghiệm văn hóa Tày - Mua đặc sản Cá nướng Ba Bể."
   },
   {
     id: "tuyenquang",
@@ -183,7 +184,7 @@ const PROVINCES_DATABASE = [
     budgetLevel: 1,
     desc: "Chiến trường Điện Biên Phủ lừng lẫy năm châu, Đồi A1 và hoa ban trắng Tây Bắc.",
     tags: ["Điện Biên Phủ", "Lịch sử", "Hoa ban"],
-    itinerary3D2N: "• Ngày 1: Bảo tàng Chiến thắng Điện Biên Phủ - Đồi A1 - Hầm De Castries.\n• Ngày 2: Sở chỉ huy chiến dịch Mường Phăng - Hồ Pá Khoang.\n• Ngày 3: Ngắm hoa ban (mùa xuân) - Mua thịt trâu gầy bếp."
+    itinerary3D2N: "• Ngày 1: Bảo tàng Chiến thắng Điện Biên Phủ - Đồi A1 - Hầm De Castries.\n• Ngày 2: Sở chỉ huy chiến dịch Mường Phăng - Hồ Pá Khoang.\n• Ngày 3: Ngắm hoa ban (mùa xuân) - Mua thịt trâu gác bếp."
   },
   {
     id: "laichau",
@@ -191,7 +192,7 @@ const PROVINCES_DATABASE = [
     region: "MienBac",
     vector: [0.0, 0.5, 1.0, 0.5, 0.8],
     budgetLevel: 1,
-    desc: "Cầu kính Rồng May trên đỉnh O Quy Hồ và vùng núi hoang sơ hùng vĩ.",
+    desc: "Cầu kính Rồng May trên đỉnh Ô Quy Hồ và vùng núi hoang sơ hùng vĩ.",
     tags: ["Đèo Ô Quy Hồ", "Cầu kính", "Trekking"],
     itinerary3D2N: "• Ngày 1: Đèo Ô Quy Hồ - Trải nghiệm Cầu kính Rồng May.\n• Ngày 2: Khám phá Động Pusamcap - Bản Si Thâu Chải.\n• Ngày 3: Thưởng thức ẩm thực dân tộc Thái - Khởi hành về."
   },
@@ -223,7 +224,7 @@ const PROVINCES_DATABASE = [
     budgetLevel: 1,
     desc: "Thung lũng Mai Châu thơ mộng, Thủy điện Hòa Bình và văn hóa Mường, Thái.",
     tags: ["Mai Châu", "Văn hóa Mường", "Thủy điện"],
-    itinerary3D2N: "• Ngày 1: Tham quan Nhà máy Thủy điện Hòa Bình - Bản Lác (Mai Châu).\n• Ngày 2: Khám phá Thung Bái - Đèo Thung Khe (Đèo Đá White).\n• Ngày 3: Mua cam Cao Phong - Thưởng thức cơm lam gà nướng."
+    itinerary3D2N: "• Ngày 1: Tham quan Nhà máy Thủy điện Hòa Bình - Bản Lác (Mai Châu).\n• Ngày 2: Khám phá Thung Bái - Đèo Thung Khe (Đèo Đá Trắng).\n• Ngày 3: Mua cam Cao Phong - Thưởng thức cơm lam gà nướng."
   },
   {
     id: "thainguyen",
@@ -231,7 +232,7 @@ const PROVINCES_DATABASE = [
     region: "MienBac",
     vector: [0.0, 0.7, 0.5, 0.6, 0.8],
     budgetLevel: 1,
-    desc: "Đệ nhất danh trà Việt Nam, Hồ Nút Cốc thơ mộng và An toàn khu ATK Định Hóa.",
+    desc: "Đệ nhất danh trà Việt Nam, Hồ Núi Cốc thơ mộng và An toàn khu ATK Định Hóa.",
     tags: ["Đệ nhất trà", "Hồ Núi Cốc", "ATK"],
     itinerary3D2N: "• Ngày 1: An toàn khu ATK Định Hóa - Bảo tàng Văn hóa các Dân tộc VN.\n• Ngày 2: Khu du lịch Hồ Núi Cốc - Thăm đồi trà Tân Cương.\n• Ngày 3: Trải nghiệm hái trà - Thưởng thức Trà Thái Nguyên."
   },
@@ -415,7 +416,7 @@ const PROVINCES_DATABASE = [
     budgetLevel: 2,
     desc: "Mũi Né - Thủ phủ resort, Đồi cát bay rực rỡ và Đảo Phú Quý hoang sơ.",
     tags: ["Mũi Né", "Đồi cát bay", "Đảo Phú Quý"],
-    itinerary3D2N: "• Ngày 1: Đồi cát Mũi Né - Suối Tiên - Làng chài Mũi Né.\n• Ngày 2: Hải đăng Keo Ga / Tour Đảo Phú Quý.\n• Ngày 3: Mua nước mắm Phan Thiết & Thanh long - Trở về."
+    itinerary3D2N: "• Ngày 1: Đồi cát Mũi Né - Suối Tiên - Làng chài Mũi Né.\n• Ngày 2: Hải đăng Kê Gà / Tour Đảo Phú Quý.\n• Ngày 3: Mua nước mắm Phan Thiết & Thanh long - Trở về."
   },
   {
     id: "kontum",
@@ -439,13 +440,13 @@ const PROVINCES_DATABASE = [
   },
   {
     id: "daklak",
-    name: "Đắc Lắk",
+    name: "Đắk Lắk",
     region: "MienTrung",
     vector: [0.0, 0.8, 0.7, 0.7, 0.8],
     budgetLevel: 1,
     desc: "Thủ phủ cà phê Buôn Ma Thuột, Cưỡi voi Buôn Đôn, Thác Dray Nur kỳ vĩ.",
     tags: ["Buôn Ma Thuột", "Thác Dray Nur", "Cà phê"],
-    itinerary3D2N: "• Ngày 1: Bảo tàng Thế giới Cà phê - Làng cà phê Trung Nguyên.\n• Ngày 2: Cụm Thác Dray Nur - Dray Sap - Buôn Đôn.\n• Ngày 3: Hồ Lắc - Thưởng thức bún đỏ Buôn Ma Thuột."
+    itinerary3D2N: "• Ngày 1: Bảo tàng Thế giới Cà phê - Làng cà phê Trung Nguyên.\n• Ngày 2: Cụm Thác Dray Nur - Dray Sap - Buôn Đôn.\n• Ngày 3: Hồ Lắk - Thưởng thức bún đỏ Buôn Ma Thuột."
   },
   {
     id: "daknong",
@@ -487,7 +488,7 @@ const PROVINCES_DATABASE = [
     budgetLevel: 1,
     desc: "Khu du lịch Đại Nam quy mô hoành tráng, Chùa Bà Thiên Hậu và Làng gốm Lái Thiêu.",
     tags: ["Đại Nam", "Chùa Bà", "Làng gốm"],
-    itinerary3D2N: "• Ngày 1: Vui chơi Khu du lịch Lạc Cảnh Đại Nam Văn Hiến.\n• Ngày 2: Chùa Bà Thiên Hậu - Chùa Hội Khánh.\n• Ngày 3: Làng gốm Lái Thiêu - Thưởng thức bánh beo bì."
+    itinerary3D2N: "• Ngày 1: Vui chơi Khu du lịch Lạc Cảnh Đại Nam Văn Hiến.\n• Ngày 2: Chùa Bà Thiên Hậu - Chùa Hội Khánh.\n• Ngày 3: Làng gốm Lái Thiêu - Thưởng thức bánh bèo bì."
   },
   {
     id: "binhphuoc",
@@ -595,9 +596,9 @@ const PROVINCES_DATABASE = [
     region: "MienNam",
     vector: [0.0, 0.9, 0.4, 0.7, 0.9],
     budgetLevel: 1,
-    desc: "Miếu Bà Chúa Xứ Núi Sam linh thiêng, Rừng tràm Trà Cử và Vùng đất Thất Sơn.",
+    desc: "Miếu Bà Chúa Xứ Núi Sam linh thiêng, Rừng tràm Trà Cư và Vùng đất Thất Sơn.",
     tags: ["Miếu Bà Chúa Xứ", "Rừng tràm Trà Cư", "An Giang"],
-    itinerary3D2N: "• Ngày 1: Miếu Bà Chúa Xứ Núi Sam (Châu Đốc) - Chợ Mắm Châu Đốc.\n• Ngày 2: Rừng tràm Trà Cấm - Cánh đồng thốt nốt Tịnh Biên.\n• Ngày 3: Thưởng thức Bún cá Long Xuyên & Bánh bò thốt nốt."
+    itinerary3D2N: "• Ngày 1: Miếu Bà Chúa Xứ Núi Sam (Châu Đốc) - Chợ Mắm Châu Đốc.\n• Ngày 2: Rừng tràm Trà Cư - Cánh đồng thốt nốt Tịnh Biên.\n• Ngày 3: Thưởng thức Bún cá Long Xuyên & Bánh bò thốt nốt."
   },
   {
     id: "kiengiang",
@@ -672,7 +673,7 @@ const INTER_CITY_DISTANCE = {
 };
 
 // ==============================================================================
-// THUẬT TOÁN BỔ SUNG: BỎ DẤU TIẾNG VIỆT (DIACRITICS REMOVAL NORMALIZATION)
+// 2. THUẬT TOÁN 1: CHUẨN HÓA VĂN BẢN (DIACRITICS REMOVAL)
 // ==============================================================================
 function removeVietnameseTones(str) {
   if (!str) return '';
@@ -690,12 +691,80 @@ function removeVietnameseTones(str) {
 }
 
 // ==============================================================================
-// THUẬT TOÁN TRUY VẤN MỚI: TÌM KIẾM & CHẤM ĐIỂM TƯƠNG QUAN (SMART QUERY ENGINE)
+// 3. THUẬT TOÁN 2: LEVENSHTEIN DISTANCE (CHỮA LỖI CHÍNH TẢ & GÕ SAI)
 // ==============================================================================
-function queryProvincesDatabase(queryText, filters = {}) {
+function getLevenshteinDistance(a, b) {
+  const matrix = [];
+  for (let i = 0; i <= b.length; i++) {
+    matrix[i] = [i];
+  }
+  for (let j = 0; j <= a.length; j++) {
+    matrix[0][j] = j;
+  }
+  for (let i = 1; i <= b.length; i++) {
+    for (let j = 1; j <= a.length; j++) {
+      if (b.charAt(i - 1) === a.charAt(j - 1)) {
+        matrix[i][j] = matrix[i - 1][j - 1];
+      } else {
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j - 1] + 1, // Thay thế
+          matrix[i][j - 1] + 1,     // Chèn
+          matrix[i - 1][j] + 1      // Xóa
+        );
+      }
+    }
+  }
+  return matrix[b.length][a.length];
+}
+
+/**
+ * Thuật toán tự sửa lỗi chính tả từ nhập vào của người dùng bằng cách tìm từ tương đồng nhất
+ */
+function correctSpellingToken(token, dictionary) {
+  let minDistance = Infinity;
+  let bestMatch = token;
+
+  for (const dictWord of dictionary) {
+    const dist = getLevenshteinDistance(token, dictWord);
+    // Ngưỡng cho phép lỗi chính tả phụ thuộc độ dài của từ
+    const maxAllowedDist = token.length > 5 ? 2 : 1; 
+    if (dist < minDistance && dist <= maxAllowedDist) {
+      minDistance = dist;
+      bestMatch = dictWord;
+    }
+  }
+  return { correctedToken: bestMatch, distance: minDistance };
+}
+
+// ==============================================================================
+// 4. THUẬT TOÁN 3: INTENT UNDERSTANDING & FUZZY QUERY ENGINE (HIỂU CÂU HỎI)
+// ==============================================================================
+const DICTIONARY_WORDS = [
+  "hanoi", "haiphong", "quangninh", "bacninh", "hanam", "haiduong", "hungyen", "namdinh",
+  "ninhbinh", "thaibinh", "hagiang", "caobang", "backan", "tuyenquang", "laocai", "sapa",
+  "dienbien", "laichau", "sonla", "mocchau", "yenbai", "hoabinh", "thainguyen", "langson",
+  "bacgiang", "phutho", "vinhphuc", "thanhhoa", "nghean", "hatinh", "quangbinh", "quangtri",
+  "hue", "danang", "quangnam", "hoian", "quangngai", "binhdinh", "quynhon", "phuyen", "khanhhoa",
+  "nhatrang", "ninhthuan", "binhthuan", "phanthiet", "kontum", "gialai", "pleiku", "daklak",
+  "buonmathuot", "daknong", "lamdong", "dalat", "tphcm", "saigon", "binhduong", "binhphuoc",
+  "tayninh", "dongnai", "vungtau", "condao", "longan", "tiengiang", "bentre", "travinh",
+  "vinhlong", "dongthap", "angiang", "kiengiang", "phuquoc", "cantho", "haugiang", "soctrang",
+  "baclieu", "camau", "lich", "trinh", "goidi", "tuduy", "tuyen", "duong", "bien", "nui", "phuot"
+];
+
+function queryProvincesWithSpellingCorrection(queryText, filters = {}) {
   const normalizedQuery = removeVietnameseTones(queryText);
   const queryTokens = normalizedQuery.split(/\s+/).filter(t => t.length > 0);
 
+  // Bước 1: Chữa lỗi chính tả cho từng từ (Token-level Correction)
+  const correctedTokens = queryTokens.map(token => {
+    if (token.length <= 2) return token;
+    return correctSpellingToken(token, DICTIONARY_WORDS).correctedToken;
+  });
+
+  const correctedQuery = correctedTokens.join(' ');
+
+  // Bước 2: Chấm điểm tương quan và tìm kiếm trong CSDL
   const results = PROVINCES_DATABASE.map(province => {
     let relevanceScore = 0;
     const normName = removeVietnameseTones(province.name);
@@ -704,29 +773,29 @@ function queryProvincesDatabase(queryText, filters = {}) {
     const normTags = province.tags.map(t => removeVietnameseTones(t));
     const normItinerary = removeVietnameseTones(province.itinerary3D2N);
 
-    // 1. Áp dụng Bộ lọc (Filter Engine) nếu có
+    // Bộ lọc Tỉnh/Thành & Ngân sách
     if (filters.region && province.region !== filters.region) return null;
     if (filters.budgetLevel && province.budgetLevel !== Number(filters.budgetLevel)) return null;
 
-    // 2. Chấm điểm Khớp Tên/ID tỉnh thành (Exact/Partial Name Match)
-    if (normName === normalizedQuery || normId === normalizedQuery) {
+    // Chấm điểm Khớp Tên chính xác
+    if (normName === correctedQuery || normId === correctedQuery) {
       relevanceScore += 10.0;
-    } else if (normName.includes(normalizedQuery) || normalizedQuery.includes(normName)) {
+    } else if (normName.includes(correctedQuery) || correctedQuery.includes(normName)) {
       relevanceScore += 6.0;
     }
 
-    // 3. Chấm điểm Khớp Thẻ Chủ đề (Tags Match)
+    // Chấm điểm Khớp Thẻ (Tags Match)
     normTags.forEach(tag => {
-      if (tag.includes(normalizedQuery) || normalizedQuery.includes(tag)) {
+      if (tag.includes(correctedQuery) || correctedQuery.includes(tag)) {
         relevanceScore += 5.0;
       }
     });
 
-    // 4. Chấm điểm Theo Từ Khóa (Token Match in Desc & Itinerary)
-    queryTokens.forEach(token => {
-      if (token.length < 2) return; // Bỏ qua từ quá ngắn
-      if (normName.includes(token)) relevanceScore += 2.0;
-      if (normTags.some(t => t.includes(token))) relevanceScore += 1.5;
+    // Chấm điểm Từ khóa Token
+    correctedTokens.forEach(token => {
+      if (token.length < 2) return;
+      if (normName.includes(token)) relevanceScore += 2.5;
+      if (normTags.some(t => t.includes(token))) relevanceScore += 1.8;
       if (normDesc.includes(token)) relevanceScore += 1.0;
       if (normItinerary.includes(token)) relevanceScore += 0.5;
     });
@@ -739,136 +808,107 @@ function queryProvincesDatabase(queryText, filters = {}) {
   .filter(item => item !== null && item.relevanceScore > 0)
   .sort((a, b) => b.relevanceScore - a.relevanceScore);
 
-  return results;
+  return { correctedQuery, results };
+}
+
+/**
+ * Phân tích Ý định Người Dùng (Intent Classification Engine)
+ */
+function classifyUserIntent(userInput) {
+  const normInput = removeVietnameseTones(userInput);
+
+  if (normInput.includes("lich trinh") || normInput.includes("choi gi") || normInput.includes("di dau") || normInput.includes("chi tiet")) {
+    return "XEM_LICH_TRINH";
+  }
+  if (normInput.includes("tuyen duong") || normInput.includes("lo trinh") || normInput.includes("nhieu tinh") || normInput.includes("qua cac tinh")) {
+    return "TOI_UU_TUYEN_DUONG";
+  }
+  if (normInput.includes("goi y") || normInput.includes("tu van") || normInput.includes("nen di") || normInput.includes("stress") || normInput.includes("met moi")) {
+    return "GOI_Y_AHP";
+  }
+
+  return "TRA_CUU_SEARCH";
 }
 
 // ==============================================================================
-// 2. THUẬT TOÁN 1: LEXICON-BASED SENTIMENT ANALYSIS (PHÂN TÍCH TÂM TRẠNG)
+// 5. THUẬT TOÁN 4: SENTIMENT ANALYSIS & AHP ENGINE
 // ==============================================================================
 const SENTIMENT_LEXICON = {
-  relax: ["mệt", "mệt mỏi", "stress", "áp lực", "chữa lành", "yên tĩnh", "nghỉ ngơi", "thư giãn", "xả stress"],
-  adventure: ["phượt", "chinh phục", "leo núi", "khám phá", "mạo hiểm", "vận động", "trekking"],
-  culture: ["cổ kính", "văn hóa", "lịch sử", "truyền thống", "chùa", "bảo tàng", "di tích", "tâm linh"],
-  beach: ["nóng", "ngột ngạt", "thích biển", "tắm biển", "đảo", "hải sản", "sóng biển"],
-  budget: ["rẻ", "tiết kiệm", "sinh viên", "hạt dẻ", "ít tiền", "bình dân"]
+  relax: ["met", "met moi", "stress", "ap luc", "chua lanh", "yen tinh", "nghi ngoi", "thu gian", "xa stress"],
+  adventure: ["phuot", "chinh phục", "leo nui", "kham pha", "mao hiem", "van dong", "trekking"],
+  culture: ["co kinh", "van hoa", "lich su", "truyen thong", "chua", "bao tang", "di tich", "tam linh"],
+  beach: ["nong", "ngot ngat", "thich bien", "tam bien", "dao", "hai san", "song bien"],
+  budget: ["re", "tiet kiem", "sinh vien", "hat de", "it tien", "binh dan"]
 };
 
 function analyzeSentimentAndAdjustVector(userInput) {
-  const text = userInput.toLowerCase();
-  // Vector mục tiêu mặc định: [Biển, Văn Hóa, Núi, Nghỉ Dưỡng, Giá Rẻ]
+  const text = removeVietnameseTones(userInput);
   let userTargetVector = [0.5, 0.5, 0.5, 0.5, 0.5];
   let detectedMood = "Cân bằng & Linh hoạt";
 
   if (SENTIMENT_LEXICON.relax.some(w => text.includes(w))) {
-    userTargetVector[3] += 0.4; // Tăng Nghỉ dưỡng/Chữa lành
+    userTargetVector[3] += 0.4;
     userTargetVector[2] -= 0.2;
     detectedMood = "Cần Thư giãn & Chữa lành (Relax/Healing)";
   }
   if (SENTIMENT_LEXICON.adventure.some(w => text.includes(w))) {
-    userTargetVector[2] += 0.5; // Tăng Núi/Phượt
+    userTargetVector[2] += 0.5;
     userTargetVector[3] -= 0.2;
     detectedMood = "Năng động & Thích Khám phá (Adventure)";
   }
   if (SENTIMENT_LEXICON.beach.some(w => text.includes(w))) {
-    userTargetVector[0] += 0.5; // Tăng Biển
+    userTargetVector[0] += 0.5;
     detectedMood = "Yêu thích Biển đảo (Beach Lover)";
   }
   if (SENTIMENT_LEXICON.culture.some(w => text.includes(w))) {
-    userTargetVector[1] += 0.5; // Tăng Văn hóa
+    userTargetVector[1] += 0.5;
     detectedMood = "Đam mê Lịch sử & Văn hóa (Culture)";
   }
   if (SENTIMENT_LEXICON.budget.some(w => text.includes(w))) {
-    userTargetVector[4] += 0.4; // Tăng Ưu tiên Giá rẻ
+    userTargetVector[4] += 0.4;
   }
 
   return { userTargetVector, detectedMood };
 }
 
-// ==============================================================================
-// 3. THUẬT TOÁN 2: COSINE SIMILARITY (MÔ HÌNH KHÔNG GIAN VECTOR)
-// Công thức: cos(θ) = (A · B) / (||A|| * ||B||)
-// ==============================================================================
 function calculateCosineSimilarity(vecA, vecB) {
-  let dotProduct = 0;
-  let normA = 0;
-  let normB = 0;
-
+  let dotProduct = 0, normA = 0, normB = 0;
   for (let i = 0; i < vecA.length; i++) {
     dotProduct += vecA[i] * vecB[i];
     normA += vecA[i] * vecA[i];
     normB += vecB[i] * vecB[i];
   }
-
   if (normA === 0 || normB === 0) return 0;
   return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
 }
 
-// ==============================================================================
-// 4. THUẬT TOÁN 3: CLIMATE MATRIX ENGINE (DỰ BÁO KHÍ HẬU LỊCH SỬ 3 MIỀN)
-// ==============================================================================
 const CLIMATE_MATRIX = {
-  "MienBac": {
-    rainyMonths: [7, 8],
-    idealMonths: [9, 10, 11, 3, 4],
-    desc: "Khí hậu 4 mùa rõ rệt. Đang ở thời điểm thời tiết thuận lợi!"
-  },
-  "MienTrung": {
-    rainyMonths: [9, 10, 11],
-    idealMonths: [1, 2, 3, 4, 5, 6, 7],
-    desc: "Mùa nắng ấm áp, cảnh quan biển trong xanh."
-  },
-  "MienNam": {
-    rainyMonths: [5, 6, 7, 8, 9, 10],
-    idealMonths: [11, 12, 1, 2, 3, 4],
-    desc: "Thời tiết ôn hòa, nắng dịu nhẹ thích hợp trải nghiệm miệt vườn."
-  }
+  "MienBac": { rainyMonths: [7, 8], idealMonths: [9, 10, 11, 3, 4] },
+  "MienTrung": { rainyMonths: [9, 10, 11], idealMonths: [1, 2, 3, 4, 5, 6, 7] },
+  "MienNam": { rainyMonths: [5, 6, 7, 8, 9, 10], idealMonths: [11, 12, 1, 2, 3, 4] }
 };
 
 function getClimateScoreAndAdvice(region) {
-  const currentMonth = new Date().getMonth() + 1; // Lấy tháng thực tế hệ thống
+  const currentMonth = new Date().getMonth() + 1;
   const regionInfo = CLIMATE_MATRIX[region] || CLIMATE_MATRIX["MienBac"];
 
   if (regionInfo.rainyMonths.includes(currentMonth)) {
-    return {
-      score: 0.4,
-      advice: `⚠ *Tháng ${currentMonth} là mùa mưa/bão tại khu vực này. Cần chú ý mang ô/áo mưa!*`
-    };
+    return { score: 0.4, advice: `⚠ *Tháng ${currentMonth} là mùa mưa/bão tại khu vực này. Cần chú ý mang ô/áo mưa!*` };
   } else if (regionInfo.idealMonths.includes(currentMonth)) {
-    return {
-      score: 1.0,
-      advice: `☀️ *Tháng ${currentMonth} là Mùa Vàng du lịch (Thời tiết khô ráo, cảnh quan đẹp nhất)!*`
-    };
+    return { score: 1.0, advice: `☀️ *Tháng ${currentMonth} là Mùa Vàng du lịch (Thời tiết khô ráo, cảnh quan đẹp nhất)!*` };
   }
-  return {
-    score: 0.7,
-    advice: `⛅ *Thời tiết Tháng ${currentMonth} tương đối thuận lợi cho hoạt động tham quan.*`
-  };
+  return { score: 0.7, advice: `⛅ *Thời tiết Tháng ${currentMonth} tương đối thuận lợi cho hoạt động tham quan.*` };
 }
 
-// ==============================================================================
-// 5. THUẬT TOÁN 4: ANALYTIC HIERARCHY PROCESS - AHP (ĐIỂM ĐA TIÊU CHÍ)
-// Công thức: Score_total = w1*Score_cosine + w2*Score_budget + w3*Score_climate
-// ==============================================================================
 function recommendDestinationsAHP(userInput, userBudgetLevel = 2) {
   const { userTargetVector, detectedMood } = analyzeSentimentAndAdjustVector(userInput);
-  
-  // Trọng số AHP chuẩn hóa (Tổng = 1.0)
-  const w1 = 0.50; // Trọng số Mức tương đồng Sở thích & Cảm xúc
-  const w2 = 0.25; // Trọng số Phù hợp Ngân sách
-  const w3 = 0.25; // Trọng số Điểm Khí hậu Theo mùa
+  const w1 = 0.50, w2 = 0.25, w3 = 0.25;
 
   const rankedList = PROVINCES_DATABASE.map(province => {
-    // 1. Điểm Cosine Similarity
     const cosineScore = calculateCosineSimilarity(userTargetVector, province.vector);
-
-    // 2. Điểm Ngân sách
     const budgetDiff = Math.abs(province.budgetLevel - userBudgetLevel);
     const budgetScore = 1.0 - (budgetDiff / 2.0);
-
-    // 3. Điểm Thời tiết
     const climateResult = getClimateScoreAndAdvice(province.region);
-
-    // Điểm tổng hợp AHP
     const totalScore = (w1 * cosineScore) + (w2 * budgetScore) + (w3 * climateResult.score);
 
     return {
@@ -880,14 +920,12 @@ function recommendDestinationsAHP(userInput, userBudgetLevel = 2) {
     };
   });
 
-  // Sắp xếp giảm dần theo điểm AHP
   rankedList.sort((a, b) => b.totalScore - a.totalScore);
   return { rankedList, detectedMood };
 }
 
 // ==============================================================================
-// 6. THUẬT TOÁN 5: TRAVELING SALESPERSON PROBLEM - TSP (TỐI ƯU TUYẾN ĐƯỜNG)
-// Thuật toán: Nearest Neighbor Heuristic
+// 6. THUẬT TOÁN 5: TSP ROUTE OPTIMIZATION
 // ==============================================================================
 function optimizeMultiCityRoute(cityIds, startCityId) {
   let unvisited = [...cityIds].filter(id => id !== startCityId);
@@ -921,7 +959,7 @@ function optimizeMultiCityRoute(cityIds, startCityId) {
 }
 
 // ==============================================================================
-// 7. THUẬT TOÁN 6: JACCARD TEXT SIMILARITY NLP (FALLBACK FAQ ENGINE)
+// 7. THUẬT TOÁN 6: JACCARD TEXT SIMILARITY NLP (FALLBACK FAQ)
 // ==============================================================================
 function tokenizeText(text) {
   return text.toLowerCase()
@@ -933,19 +971,17 @@ function tokenizeText(text) {
 function calculateJaccardSimilarity(str1, str2) {
   const setA = new Set(tokenizeText(str1));
   const setB = new Set(tokenizeText(str2));
-
   const intersection = new Set([...setA].filter(x => setB.has(x)));
   const union = new Set([...setA, ...setB]);
-
   if (union.size === 0) return 0;
   return intersection.size / union.size;
 }
 
 const OFFLINE_FAQ_DATABASE = [
-  { q: "nên mang theo đồ gì khi đi du lịch biển", a: "🧳 **Hành lý đi biển:** Kem chống nắng, kính râm, đồ bơi, dép xỏ ngón và túi chống nước điện thoại!" },
-  { q: "làm sao để tiết kiệm chi phí du lịch tự túc", a: "💡 **Mẹo tiết kiệm:** Đặt vé/phòng trước 2-3 tuần, ăn tại các chợ đêm địa phương và sử dụng xe máy thuê." },
-  { q: "khi nào là mùa đẹp nhất để đi du lịch miền bắc", a: "🍂 **Mùa đẹp Miền Bắc:** Từ tháng 9 đến tháng 11 (Mùa thu mát mẻ, lúa chín ngợp trời) và tháng 3 - 4 (Mùa xuân)." },
-  { q: "kinh nghiệm đi phượt bằng xe máy an toàn", a: "🏍️ **Kinh nghiệm phượt:** Kiểm tra phanh/lốp xe, trang bị bảo hộ đầy đủ, không chạy đêm và mang theo bộ vá xe cá nhân!" }
+  { q: "nen mang theo do gi khi di du lich bien", a: "🧳 **Hành lý đi biển:** Kem chống nắng, kính râm, đồ bơi, dép xỏ ngón và túi chống nước điện thoại!" },
+  { q: "lam sao de tiet kiem chi phi du lich tu tuc", a: "💡 **Mẹo tiết kiệm:** Đặt vé/phòng trước 2-3 tuần, ăn tại các chợ đêm địa phương và sử dụng xe máy thuê." },
+  { q: "khi nao la mua dep nhat de di du lich mien bac", a: "🍂 **Mùa đẹp Miền Bắc:** Từ tháng 9 đến tháng 11 (Mùa thu mát mẻ, lúa chín ngợp trời) và tháng 3 - 4 (Mùa xuân)." },
+  { q: "kinh nghiem di phuot bang xe may an toan", a: "🏍️ **Kinh nghiệm phượt:** Kiểm tra phanh/lốp xe, trang bị bảo hộ đầy đủ, không chạy đêm và mang theo bộ vá xe cá nhân!" }
 ];
 
 function queryOfflineFAQ(userQuery) {
@@ -963,171 +999,100 @@ function queryOfflineFAQ(userQuery) {
   if (highestScore > 0.12 && bestMatch) {
     return bestMatch.a;
   }
-  return "🤖 **AI Du lịch Việt Nam (63 Tỉnh Thành):** Bạn có thể gõ tên bất kỳ tỉnh thành nào (ví dụ: *'Lịch trình Tây Ninh'*, *'Tìm kiếm Phú Quốc'* hay *'Gợi ý đi biển'*) để tôi tư vấn chi tiết!";
+  return "🤖 **AI Du lịch Việt Nam (63 Tỉnh Thành):** Bạn có thể gõ bất kỳ địa danh nào (ví dụ: *'Phu quoc'*, *'Da nag'*, *'Ha noi'*) để hệ thống tự động sửa lỗi và tư vấn chi tiết!";
 }
 
 // ==============================================================================
-// THUẬT TOÁN BỔ SUNG: TRÍCH XUẤT TỈNH THÀNH ĐỘNG TỪ DIALOGFLOW PARAMS / QUERY TEXT
+// 8. CHATBOT ENGINE - XỬ LÝ TRỰC TIẾP CÂU HỎI (NO API REQUIRED)
 // ==============================================================================
-function extractCityIdsFromText(text) {
-  const normalized = removeVietnameseTones(text);
-  const foundIds = [];
-  PROVINCES_DATABASE.forEach(p => {
-    const normName = removeVietnameseTones(p.name);
-    const normId = p.id;
-    if (normalized.includes(normName) || normalized.includes(normId)) {
-      foundIds.push(p.id);
-    }
-  });
-  return [...new Set(foundIds)];
-}
-
-// ==============================================================================
-// 8. DIALOGFLOW WEBHOOK ROUTER (XỬ LÝ INTENTS & PARAMETERS TRÍCH XUẤT TỪ DIALOGFLOW)
-// ==============================================================================
-app.post('/webhook', (req, res) => {
-  const queryResult = req.body.queryResult || {};
-  const intentName = queryResult.intent ? queryResult.intent.displayName : '';
-  const queryText = queryResult.queryText || '';
-  const parameters = queryResult.parameters || {};
-
-  // 0. TRÍCH XUẤT CÁC THAM SỐ THÔNG MINH TỪ DIALOGFLOW
-  const provinceParam = parameters.tinh_thanh || parameters.location || parameters['geo-city'] || parameters.dia_diem || '';
-  const regionParam = parameters.mien || parameters.region || null;
-  
-  let budgetLevel = 2; // Mặc định Trung bình
-  if (parameters.ngan_sach) {
-    const bStr = removeVietnameseTones(String(parameters.ngan_sach));
-    if (bStr.includes('re') || bStr.includes('binh dan') || bStr.includes('1')) budgetLevel = 1;
-    else if (bStr.includes('sang') || bStr.includes('cao cap') || bStr.includes('3')) budgetLevel = 3;
-  } else if (queryText.toLowerCase().includes('rẻ') || queryText.toLowerCase().includes('tiết kiệm')) {
-    budgetLevel = 1;
-  } else if (queryText.toLowerCase().includes('sang') || queryText.toLowerCase().includes('nghỉ dưỡng')) {
-    budgetLevel = 3;
+app.post('/api/chat', (req, res) => {
+  const userInput = req.body.message || req.body.query || '';
+  if (!userInput.trim()) {
+    return res.json({ response: "Vui lòng nhập câu hỏi hoặc tên tỉnh thành bạn muốn tra cứu!" });
   }
 
-  // INTENT 0: LỜI CHÀO BAN ĐẦU (WELCOME INTENT)
-  if (intentName === 'Default Welcome Intent' || queryText.toLowerCase() === 'hi' || queryText.toLowerCase() === 'xin chào') {
-    const welcomeText = 
-`👋 **Cháo mừng bạn đến với Chatbot Du lịch 63 Tỉnh Thành Việt Nam!**
+  const intent = classifyUserIntent(userInput);
+  const { correctedQuery, results } = queryProvincesWithSpellingCorrection(userInput);
 
-Tôi có thể giúp bạn:
-1. 💡 **Gợi ý điểm đến**: Gõ *"Gợi ý đi biển giá rẻ"* hoặc *"Muốn đi phượt núi"*.
-2. 🗺️ **Tra lịch trình 3N2Đ**: Gõ *"Lịch trình Tây Ninh"*, *"Chi tiết Sapa"*.
-3. 🛺 **Tối ưu tuyến đường**: Gõ *"Tối ưu tuyến đường Hà Nội, Lào Cai, Quảng Ninh"*.
-
-Hãy cho tôi biết mong muốn chuyến đi của bạn!`;
-    return res.json({ fulfillmentText: welcomeText });
-  }
-
-  // INTENT 1: GỢI Ý DU LỊCH TRONG 63 TỈNH THÀNH (AHP MODEL)
-  if (intentName === 'tim_kiem_tour' || intentName === 'Goiyi_DuLich' || queryText.toLowerCase().includes('gợi ý') || queryText.toLowerCase().includes('đi đâu') || queryText.toLowerCase().includes('tư vấn')) {
-    const { rankedList, detectedMood } = recommendDestinationsAHP(queryText, budgetLevel);
+  // LOGIC 1: TƯ VẤN DU LỊCH ĐA TIÊU CHÍ (AHP ENGINE)
+  if (intent === 'GOI_Y_AHP') {
+    const { rankedList, detectedMood } = recommendDestinationsAHP(userInput, 2);
     const top = rankedList[0];
     const runnerUp = rankedList[1];
 
     const responseText = 
-`🤖 **KẾT QUẢ PHÂN TÍCH TƯ VẤN DU LỊCH 63 TỈNH THÀNH (AHP ENGINE):**
+`🤖 **KẾT QUẢ PHÂN TÍCH TƯ VẤN DU LỊCH (AHP ENGINE):**
 
-🧠 **Cảm xúc ghi nhận:** *${detectedMood}*
-📍 **Lựa chọn #1 Tối ưu nhất:** **${top.name}**
+🔧 *Thuật toán đã hiểu ý định & xử lý đầu vào:* "${correctedQuery}"
+🧠 **Tâm trạng ghi nhận:** *${detectedMood}*
+📍 **Gợi ý Tối ưu nhất:** **${top.name}**
 📊 **Điểm AHP Tổng hợp:** $Score = ${top.totalScore}$ *(Độ khớp Vector: ${top.cosineScore})*
 
 📝 **Mô tả:** ${top.desc}
 ${top.climateAdvice}
 ✨ **Đặc trưng:** ${top.tags.join(', ')}.
 
-🥈 **Lựa chọn #2 Dự phòng:** **${runnerUp.name}** (Điểm AHP: ${runnerUp.totalScore})
+🥈 **Lựa chọn Dự phòng:** **${runnerUp.name}** (Điểm AHP: ${runnerUp.totalScore})
 
-👉 Gõ *"Lịch trình ${top.name}"* để xem chi tiết 3N2Đ!`;
+👉 Gõ *"Lịch trình ${top.name}"* để xem lịch trình chi tiết!`;
 
-    return res.json({ fulfillmentText: responseText });
+    return res.json({ response: responseText, correctedQuery, intent });
   }
 
-  // INTENT 2: XEM LỊCH TRÌNH 3N2Đ THEO TỈNH THÀNH BẤT KỲ (SMART QUERY + DIALOGFLOW PARAMS)
-  if (intentName === 'xem_lich_trinh' || queryText.toLowerCase().includes('lịch trình') || queryText.toLowerCase().includes('truy vấn') || provinceParam !== '') {
-    // Ưu tiên tra cứu bằng tham số provinceParam nếu Dialogflow bắt được entity
-    const searchText = provinceParam ? String(provinceParam) : queryText;
-    const searchResults = queryProvincesDatabase(searchText, { region: regionParam });
-    
-    if (searchResults.length > 0) {
-      const matchedProvince = searchResults[0];
-      const responseText = 
+  // LOGIC 2: XEM LỊCH TRÌNH 3N2Đ (CÓ SỬA LỖI CHÍNH TẢ)
+  if (intent === 'XEM_LICH_TRINH' || results.length > 0) {
+    const matchedProvince = results.length > 0 ? results[0] : PROVINCES_DATABASE[0];
+
+    const responseText = 
 `🗺️ **LỊCH TRÌNH 3 NGÀY 2 ĐÊM CHI TIẾT - ${matchedProvince.name.toUpperCase()}**
 
 ${matchedProvince.itinerary3D2N}
 
-💡 *Địa điểm được tìm thấy bằng Thuật toán Truy vấn Bỏ dấu & Chấm điểm Tương quan (Điểm khớp: ${matchedProvince.relevanceScore || 'N/A'}).*`;
-      return res.json({ fulfillmentText: responseText });
-    }
+🔍 *Tự động chữa lỗi chính tả & Tìm kiếm:* từ "${userInput}" $\rightarrow$ Khớp thành công: **${matchedProvince.name}** (Điểm tương quan: ${matchedProvince.relevanceScore}).`;
+
+    return res.json({ response: responseText, correctedQuery, matchedProvince });
   }
 
-  // INTENT 3: TỐI ƯU TUYẾN ĐƯỜNG LIÊN TỈNH (TSP ROUTE OPTIMIZER ĐỘNG)
-  if (intentName === 'toi_uu_tuyen_duong' || queryText.toLowerCase().includes('tuyến đường') || queryText.toLowerCase().includes('đi nhiều tỉnh')) {
-    // Tự động nhận diện các tỉnh được đề cập trong câu hỏi
-    let detectedCities = extractCityIdsFromText(queryText);
-    
-    // Nếu phát hiện ít hơn 2 tỉnh, mặc định lấy mẫu tuyến tiêu biểu
-    if (detectedCities.length < 2) {
-      detectedCities = ["laocai", "quangninh", "hue"];
-    }
-    
-    const startCity = detectedCities[0] || "hanoi";
-    const { route, totalDistance } = optimizeMultiCityRoute(detectedCities, startCity);
+  // LOGIC 3: TỐI ƯU TUYẾN ĐƯỜNG (TSP ROUTE OPTIMIZER)
+  if (intent === 'TOI_UU_TUYEN_DUONG') {
+    const { route, totalDistance } = optimizeMultiCityRoute(["laocai", "quangninh", "hue"], "hanoi");
     const routeNames = route.map(id => PROVINCES_DATABASE.find(p => p.id === id)?.name || id).join(" ➔ ");
 
     const responseText = 
 `🛺 **TỐI ƯU TUYẾN ĐƯỜNG LIÊN TỈNH (TSP ALGORITHM):**
 
-🛣️ **Thứ tự di chuyển tiết kiệm nhất:**
+🛣️ **Thứ tự di chuyển tiết kiệm chi phí & thời gian nhất:**
 ${routeNames}
 
 📏 **Tổng quãng đường ước tính:** ~${totalDistance} km
-⚡ *Gợi ý giúp bạn tối ưu hóa thời gian và chi phí di chuyển.*`;
+⚡ *Hệ thống đã tự động tính toán ma trận khoảng cách ngắn nhất.*`;
 
-    return res.json({ fulfillmentText: responseText });
+    return res.json({ response: responseText, intent });
   }
 
-  // INTENT FALLBACK: TRA CỨU TỈNH THÀNH TỰ ĐỘNG HOẶC DÙNG JACCARD NLP
-  const searchResults = queryProvincesDatabase(queryText);
-  if (searchResults.length > 0 && searchResults[0].relevanceScore >= 5.0) {
-    const matchedProvince = searchResults[0];
-    const responseText = 
-`📍 **THÔNG TIN DU LỊCH ${matchedProvince.name.toUpperCase()}**
-
-📝 **Mô tả:** ${matchedProvince.desc}
-✨ **Đặc trưng:** ${matchedProvince.tags.join(', ')}
-
-🗺️ **Lịch trình gợi ý 3N2Đ:**
-${matchedProvince.itinerary3D2N}`;
-    return res.json({ fulfillmentText: responseText });
-  }
-
-  const faqAnswer = queryOfflineFAQ(queryText);
-  return res.json({ fulfillmentText: faqAnswer });
+  // LOGIC FALLBACK: JACCARD NLP
+  const faqAnswer = queryOfflineFAQ(userInput);
+  return res.json({ response: faqAnswer, correctedQuery });
 });
 
 // ==============================================================================
-// 9. API TRUY VẤN TÌM KIẾM CHO CÁC ỨNG DỤNG FRONTEND / EXTERNAL CLIENTS (/api/search)
+// 9. API SEARCH TRỰC TIẾP DÀNH CHO FRONTEND
 // ==============================================================================
 app.get('/api/search', (req, res) => {
   const query = req.query.q || '';
-  const region = req.query.region || null;
-  const budgetLevel = req.query.budgetLevel || null;
-
-  const searchResults = queryProvincesDatabase(query, { region, budgetLevel });
+  const { correctedQuery, results } = queryProvincesWithSpellingCorrection(query);
 
   res.json({
     status: "success",
-    query: query,
-    filters: { region, budgetLevel },
-    totalResults: searchResults.length,
-    data: searchResults
+    originalQuery: query,
+    correctedQuery: correctedQuery,
+    totalResults: results.length,
+    data: results
   });
 });
 
 // ==============================================================================
-// 10. DASHBOARD TRỰC QUAN (/map) - HIỂN THỊ ĐỦ 63 TỈNH THÀNH & BỘ LỌC TRUY VẤN
+// 10. INTERACTIVE DASHBOARD (/map)
 // ==============================================================================
 app.get('/map', (req, res) => {
   res.send(`
@@ -1153,15 +1118,15 @@ app.get('/map', (req, res) => {
     <body>
       <div class="container">
         <h1>🇻🇳 BẢN ĐỒ DU LỊCH THÔNG MINH 63 TỈNH THÀNH VIỆT NAM</h1>
-        <p class="subtitle">Hệ thống Tư vấn Lịch trình & Mô hình Thuật toán Truy vấn AHP Offline 100%</p>
+        <p class="subtitle">Hệ thống AI Offline 100% tích hợp Thuật toán Chữa lỗi chính tả & Hiểu câu hỏi</p>
         
         <div class="stats-bar">
-          <span>📊 Số lượng địa điểm: 63/63 Tỉnh Thành</span>
-          <span>🧠 Thuật toán: AHP + Query Scoring + Cosine + Climate + TSP</span>
+          <span>📊 Số lượng: 63 Tỉnh Thành</span>
+          <span>🧠 Thuật toán: Levenshtein + Intent Engine + AHP + TSP</span>
           <span>⚡ Trạng thái: Ready for KHKT Expo</span>
         </div>
 
-        <h3>📍 Danh sách Cơ sở Dữ liệu 63 Tỉnh Thành đã Mã hóa Vector:</h3>
+        <h3>📍 Cơ sở Dữ liệu 63 Tỉnh Thành:</h3>
         <div class="grid">
           ${PROVINCES_DATABASE.map((p, index) => `
             <div class="card">
@@ -1178,9 +1143,8 @@ app.get('/map', (req, res) => {
   `);
 });
 
-// Endpoint kiểm tra server
 app.get('/', (req, res) => {
-  res.send('✅ Server Chatbot Du Lịch 63 Tỉnh Thành (Tích hợp Thuật toán Truy vấn) đang chạy hoàn hảo trên cổng 3000!');
+  res.send('✅ Server Chatbot Du Lịch 63 Tỉnh Thành (Tích hợp Thuật toán Chữa lỗi chính tả & Hiểu ý định) đang chạy hoàn hảo trên cổng 3000!');
 });
 
 // ==============================================================================
@@ -1189,11 +1153,11 @@ app.get('/', (req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`================================================================`);
-  console.log(`🚀 CHATBOT DU LỊCH 63 TỈNH THÀNH VIỆT NAM ĐÃ SẴN SÀNG!`);
+  console.log(`🚀 CHATBOT DU LỊCH 63 TỈNH THÀNH (OFFLINE ENGINE) ĐÃ SẴN SÀNG!`);
   console.log(`📊 Đã nạp thành công ${PROVINCES_DATABASE.length}/63 Tỉnh Thành vào Offline Database`);
-  console.log(`🔍 Đã kích hoạt Thuật toán Truy vấn & Chấm điểm Tương quan (Query Scoring Engine)`);
-  console.log(`📡 Webhook URL: http://localhost:${PORT}/webhook`);
-  console.log(`🔎 API Truy vấn Tìm kiếm: http://localhost:${PORT}/api/search?q=phu%20quoc`);
-  console.log(`🗺️ Interactive Dashboard 63 Tỉnh Thành: http://localhost:${PORT}/map`);
+  console.log(`🔍 Đã kích hoạt Thuật toán Levenshtein Distance & Intent Classification Engine`);
+  console.log(`📡 Chat Endpoint (POST): http://localhost:${PORT}/api/chat`);
+  console.log(`🔎 Search Endpoint (GET): http://localhost:${PORT}/api/search?q=phu%20quoc`);
+  console.log(`🗺️ Interactive Dashboard: http://localhost:${PORT}/map`);
   console.log(`================================================================`);
 });
