@@ -439,7 +439,7 @@ const PROVINCES_DATABASE = [
   },
   {
     id: "daklak",
-    name: "Đắk Lắk",
+    name: "Đắc Lắk",
     region: "MienTrung",
     vector: [0.0, 0.8, 0.7, 0.7, 0.8],
     budgetLevel: 1,
@@ -967,16 +967,62 @@ function queryOfflineFAQ(userQuery) {
 }
 
 // ==============================================================================
-// 8. DIALOGFLOW WEBHOOK ROUTER (XỬ LÝ INTENTS & TRUY VẤN CẢI TIẾN)
+// THUẬT TOÁN BỔ SUNG: TRÍCH XUẤT TỈNH THÀNH ĐỘNG TỪ DIALOGFLOW PARAMS / QUERY TEXT
+// ==============================================================================
+function extractCityIdsFromText(text) {
+  const normalized = removeVietnameseTones(text);
+  const foundIds = [];
+  PROVINCES_DATABASE.forEach(p => {
+    const normName = removeVietnameseTones(p.name);
+    const normId = p.id;
+    if (normalized.includes(normName) || normalized.includes(normId)) {
+      foundIds.push(p.id);
+    }
+  });
+  return [...new Set(foundIds)];
+}
+
+// ==============================================================================
+// 8. DIALOGFLOW WEBHOOK ROUTER (XỬ LÝ INTENTS & PARAMETERS TRÍCH XUẤT TỪ DIALOGFLOW)
 // ==============================================================================
 app.post('/webhook', (req, res) => {
   const queryResult = req.body.queryResult || {};
   const intentName = queryResult.intent ? queryResult.intent.displayName : '';
   const queryText = queryResult.queryText || '';
+  const parameters = queryResult.parameters || {};
+
+  // 0. TRÍCH XUẤT CÁC THAM SỐ THÔNG MINH TỪ DIALOGFLOW
+  const provinceParam = parameters.tinh_thanh || parameters.location || parameters['geo-city'] || parameters.dia_diem || '';
+  const regionParam = parameters.mien || parameters.region || null;
+  
+  let budgetLevel = 2; // Mặc định Trung bình
+  if (parameters.ngan_sach) {
+    const bStr = removeVietnameseTones(String(parameters.ngan_sach));
+    if (bStr.includes('re') || bStr.includes('binh dan') || bStr.includes('1')) budgetLevel = 1;
+    else if (bStr.includes('sang') || bStr.includes('cao cap') || bStr.includes('3')) budgetLevel = 3;
+  } else if (queryText.toLowerCase().includes('rẻ') || queryText.toLowerCase().includes('tiết kiệm')) {
+    budgetLevel = 1;
+  } else if (queryText.toLowerCase().includes('sang') || queryText.toLowerCase().includes('nghỉ dưỡng')) {
+    budgetLevel = 3;
+  }
+
+  // INTENT 0: LỜI CHÀO BAN ĐẦU (WELCOME INTENT)
+  if (intentName === 'Default Welcome Intent' || queryText.toLowerCase() === 'hi' || queryText.toLowerCase() === 'xin chào') {
+    const welcomeText = 
+`👋 **Cháo mừng bạn đến với Chatbot Du lịch 63 Tỉnh Thành Việt Nam!**
+
+Tôi có thể giúp bạn:
+1. 💡 **Gợi ý điểm đến**: Gõ *"Gợi ý đi biển giá rẻ"* hoặc *"Muốn đi phượt núi"*.
+2. 🗺️ **Tra lịch trình 3N2Đ**: Gõ *"Lịch trình Tây Ninh"*, *"Chi tiết Sapa"*.
+3. 🛺 **Tối ưu tuyến đường**: Gõ *"Tối ưu tuyến đường Hà Nội, Lào Cai, Quảng Ninh"*.
+
+Hãy cho tôi biết mong muốn chuyến đi của bạn!`;
+    return res.json({ fulfillmentText: welcomeText });
+  }
 
   // INTENT 1: GỢI Ý DU LỊCH TRONG 63 TỈNH THÀNH (AHP MODEL)
-  if (intentName === 'tim_kiem_tour' || intentName === 'Goiyi_DuLich' || queryText.toLowerCase().includes('gợi ý') || queryText.toLowerCase().includes('đi đâu')) {
-    const { rankedList, detectedMood } = recommendDestinationsAHP(queryText, 2);
+  if (intentName === 'tim_kiem_tour' || intentName === 'Goiyi_DuLich' || queryText.toLowerCase().includes('gợi ý') || queryText.toLowerCase().includes('đi đâu') || queryText.toLowerCase().includes('tư vấn')) {
+    const { rankedList, detectedMood } = recommendDestinationsAHP(queryText, budgetLevel);
     const top = rankedList[0];
     const runnerUp = rankedList[1];
 
@@ -998,25 +1044,36 @@ ${top.climateAdvice}
     return res.json({ fulfillmentText: responseText });
   }
 
-  // INTENT 2: XEM LỊCH TRÌNH 3N2Đ THEO TỈNH THÀNH BẤT KỲ (SỬ DỤNG SMART QUERY ENGINE)
-  if (intentName === 'xem_lich_trinh' || queryText.toLowerCase().includes('lịch trình') || queryText.toLowerCase().includes('truy vấn')) {
-    // Sử dụng Thuật toán Truy vấn Tìm kiếm Thông minh thay vì tìm kiếm từ khóa cứng
-    const searchResults = queryProvincesDatabase(queryText);
-    const matchedProvince = searchResults.length > 0 ? searchResults[0] : PROVINCES_DATABASE[0];
-
-    const responseText = 
+  // INTENT 2: XEM LỊCH TRÌNH 3N2Đ THEO TỈNH THÀNH BẤT KỲ (SMART QUERY + DIALOGFLOW PARAMS)
+  if (intentName === 'xem_lich_trinh' || queryText.toLowerCase().includes('lịch trình') || queryText.toLowerCase().includes('truy vấn') || provinceParam !== '') {
+    // Ưu tiên tra cứu bằng tham số provinceParam nếu Dialogflow bắt được entity
+    const searchText = provinceParam ? String(provinceParam) : queryText;
+    const searchResults = queryProvincesDatabase(searchText, { region: regionParam });
+    
+    if (searchResults.length > 0) {
+      const matchedProvince = searchResults[0];
+      const responseText = 
 `🗺️ **LỊCH TRÌNH 3 NGÀY 2 ĐÊM CHI TIẾT - ${matchedProvince.name.toUpperCase()}**
 
 ${matchedProvince.itinerary3D2N}
 
-💡 *Địa điểm được tìm thấy chính xác bằng Thuật toán Truy vấn Bỏ dấu & Chấm điểm Tương quan (Điểm khớp: ${matchedProvince.relevanceScore || 'N/A'}).*`;
-
-    return res.json({ fulfillmentText: responseText });
+💡 *Địa điểm được tìm thấy bằng Thuật toán Truy vấn Bỏ dấu & Chấm điểm Tương quan (Điểm khớp: ${matchedProvince.relevanceScore || 'N/A'}).*`;
+      return res.json({ fulfillmentText: responseText });
+    }
   }
 
-  // INTENT 3: TỐI ƯU TUYẾN ĐƯỜNG LIÊN TỈNH (TSP ROUTE OPTIMIZER)
+  // INTENT 3: TỐI ƯU TUYẾN ĐƯỜNG LIÊN TỈNH (TSP ROUTE OPTIMIZER ĐỘNG)
   if (intentName === 'toi_uu_tuyen_duong' || queryText.toLowerCase().includes('tuyến đường') || queryText.toLowerCase().includes('đi nhiều tỉnh')) {
-    const { route, totalDistance } = optimizeMultiCityRoute(["laocai", "quangninh", "hue"], "hanoi");
+    // Tự động nhận diện các tỉnh được đề cập trong câu hỏi
+    let detectedCities = extractCityIdsFromText(queryText);
+    
+    // Nếu phát hiện ít hơn 2 tỉnh, mặc định lấy mẫu tuyến tiêu biểu
+    if (detectedCities.length < 2) {
+      detectedCities = ["laocai", "quangninh", "hue"];
+    }
+    
+    const startCity = detectedCities[0] || "hanoi";
+    const { route, totalDistance } = optimizeMultiCityRoute(detectedCities, startCity);
     const routeNames = route.map(id => PROVINCES_DATABASE.find(p => p.id === id)?.name || id).join(" ➔ ");
 
     const responseText = 
@@ -1031,7 +1088,21 @@ ${routeNames}
     return res.json({ fulfillmentText: responseText });
   }
 
-  // INTENT FALLBACK: DÙNG JACCARD NLP TRA CỨU
+  // INTENT FALLBACK: TRA CỨU TỈNH THÀNH TỰ ĐỘNG HOẶC DÙNG JACCARD NLP
+  const searchResults = queryProvincesDatabase(queryText);
+  if (searchResults.length > 0 && searchResults[0].relevanceScore >= 5.0) {
+    const matchedProvince = searchResults[0];
+    const responseText = 
+`📍 **THÔNG TIN DU LỊCH ${matchedProvince.name.toUpperCase()}**
+
+📝 **Mô tả:** ${matchedProvince.desc}
+✨ **Đặc trưng:** ${matchedProvince.tags.join(', ')}
+
+🗺️ **Lịch trình gợi ý 3N2Đ:**
+${matchedProvince.itinerary3D2N}`;
+    return res.json({ fulfillmentText: responseText });
+  }
+
   const faqAnswer = queryOfflineFAQ(queryText);
   return res.json({ fulfillmentText: faqAnswer });
 });
