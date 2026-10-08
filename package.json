@@ -1,14 +1,16 @@
 {
-  "name": "vn-travel-bot",
-  "version": "1.0.0",
-  "description": "Travel chatbot integrated with Dialogflow for Vietnam",
+  "name": "vietnam-travel-expert-dialogflow",
+  "version": "2.0.0",
+  "description": "Webhook Chatbot Chuyên Gia Du Lịch 63 Tỉnh Thành Việt Nam cho Dialogflow",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
-    "express": "^4.19.2",
-    "dotenv": "^16.4.5",
-    "@google-cloud/dialogflow": "^6.3.0"
+    "express": "^4.18.2",
+    "fuse.js": "^6.6.2"
+  },
+  "engines": {
+    "node": ">=14.0.0"
   }
 }
